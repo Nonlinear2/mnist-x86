@@ -1,0 +1,6 @@
+SFML-2.6.1
+test.cpp
+*.exe
+*.obj
+*.pdb
+*.ilk
