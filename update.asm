@@ -23,17 +23,14 @@ update:
     ; mouse x position in rdx
     ; mouse y position in r8
 
-    mov rax, r8                                      ; load y position in eax
-
-    mov r10, rdx                                     ; save rdx before calling the mul instruction            
     mov r9d, window_x                                ; Load window_x into a register
-    mul r9d                                          ; edx:eax = eax * r9d
-    add rax, r10                                     ; rax += mouse x position
+    imul r8d, r9d                                     ; r8d    = r8d * r9d
+    add  r8,  rdx                                      ; r8d += mouse x position
     ; now contains the index of the pixel to be set.
 
-    shl eax, 2                                       ; multiply the index by 4, because it is an RBBA array
+    shl r8d, 2                                       ; multiply the index by 4, because it is an RBBA array
     
-    mov byte [rcx + rax], 255                        ; set the red value to 255
+    mov byte [rcx + r8], 255                         ; set the red value to 255
 
     ; Function epilogue
     mov eax, 0                  ; Return 0
@@ -46,7 +43,7 @@ clear:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 48                                 ; Reserve 32 bytes of shadow space + 16 for local variables
+    sub     rsp, 48                                    ; Reserve 32 bytes of shadow space + 16 for local variables
     
     ; store the mouse position
 
@@ -86,8 +83,6 @@ second_loop:
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
-
-update_nn:
 
     ; ; Call printf
     ; lea     rcx, [rel message]   ; First parameter for printf
