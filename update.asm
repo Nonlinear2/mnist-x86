@@ -4,12 +4,14 @@ extern printf
 
 
 section .data
-message db 'value is %d', 10, 0    ; 10 is newline, 0 is string terminator
+message db 'value is %d', 10, 0                      ; 10 is newline, 0 is string terminator
 
 
 section .text
-window_x equ 150
-window_y equ 150
+
+%define pixel_size 4
+%define window_x 150
+%define window_y 150
 
 update:
     ; Function prologue
@@ -23,8 +25,20 @@ update:
     ; mouse x position in rdx
     ; mouse y position in r8
 
-    mov r9d, window_x                                ; Load window_x into a register
-    imul r8d, r9d                                     ; r8d    = r8d * r9d
+    ; bounds checks:
+    cmp rdx, 0
+    jl return
+
+    cmp rdx, window_x
+    jge return
+
+    cmp r8, 0
+    jl return
+
+    cmp r8, window_y
+    jge return
+
+    imul r8d, window_x                                 ; r8d    = r8d * window_x
     add  r8,  rdx                                      ; r8d += mouse x position
     ; now contains the index of the pixel to be set.
 
@@ -32,6 +46,7 @@ update:
     
     mov byte [rcx + r8], 255                         ; set the red value to 255
 
+return:
     ; Function epilogue
     mov eax, 0                  ; Return 0
 
