@@ -16,12 +16,12 @@ void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer){
                 for (int i = 0; i < scale; i++){
                     int index = ((y * scale + j) * scale * width + (x * scale + i)) * 4;
                     int r = static_cast<int>(in_buffer[index]);
-                    int g = static_cast<int>(in_buffer[index + 1]);
-                    int b = static_cast<int>(in_buffer[index + 2]);
-                    accumulator += r + g + b;
+                    // int g = static_cast<int>(in_buffer[index + 1]);
+                    // int b = static_cast<int>(in_buffer[index + 2]);
+                    accumulator += r; //+ g + b;
                 }
             }
-            out_buffer[y * width + x] = static_cast<uint8_t>(accumulator / (scale * scale * 3)); // average rgb to get grayscale
+            out_buffer[y * width + x] = static_cast<uint8_t>(accumulator / (scale * scale)); // * 3 average rgb to get grayscale
         }
     }
 }
@@ -95,23 +95,38 @@ void load_weights(int* dense1_weights, int* dense1_bias, int* dense2_weights, in
     weights_stream.close();
 };
 
-int run_network(uint8_t* input_buffer,
-                int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias,
-                int* output_buffer){
+void run_network(uint8_t* input_buffer,
+                 int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias,
+                 int* output_buffer){
     
     constexpr int input_size = 28*28;
     constexpr int dense1_size = 128;
     constexpr int dense2_size = 10;
     
+    int layer1_output[dense1_size];
+
     // layer 1
     for (int row = 0; row < dense1_size; row++){
-        output_buffer[row] = dense1_bias[row]; // add bias
+        layer1_output[row] = dense1_bias[row]; // add bias
         for (int i = 0; i < input_size; i++){
-            output_buffer[row] += dense1_weights[row*input_size + i] * input_buffer[i]; 
+            layer1_output[row] += dense1_weights[row*input_size + i] * static_cast<int>(input_buffer[i]);
         }
     }
 
-    
+    for (int i = 0; i < dense1_size; i++){
+        if (layer1_output[i] <= 0)
+            layer1_output[i] = 0;
+        else
+            layer1_output[i] /= 256;
+    }
+
+    // layer 2
+    for (int row = 0; row < dense2_size; row++){
+        output_buffer[row] = dense2_bias[row]; // add bias
+        for (int i = 0; i < dense1_size; i++){
+            output_buffer[row] += dense2_weights[row*dense1_size + i] * layer1_output[i]; 
+        }
+    }
 }
 
 
@@ -140,6 +155,19 @@ int main(){
     mnist_texture.update(draw_mnist_buffer);
     sf::Sprite mnist_sprite(mnist_texture);
 
+    // network
+    constexpr int input_size = 28*28;
+    constexpr int dense1_size = 128;
+    constexpr int dense2_size = 10;
+
+    int dense1_weights[input_size*dense1_size] = {};
+    int dense1_bias[dense1_size] = {};
+    int dense2_weights[dense1_size*dense2_size] = {};
+    int dense2_bias[dense2_size] = {};
+
+    load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
+    int output_buffer[dense2_size] = {};
+
     while (window.isOpen()){
         sf::Event event;
         while (window.pollEvent(event)){
@@ -166,6 +194,15 @@ int main(){
             clear(buffer);
             texture.update(buffer);
             sprite.setTexture(texture);
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)){
+            run_network(mnist_buffer, dense1_weights, dense1_bias, dense2_weights, dense2_bias, output_buffer);
+            for (int i = 0; i < dense2_size; i++){
+                std::cout << output_buffer[i]/256 << std::endl;
+            }
+            std::cout << "===================\n";
+            std::cout << "===================\n";
         }
 
         window.clear();
