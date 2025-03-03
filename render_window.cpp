@@ -1,33 +1,43 @@
 #include "render_window.hpp"
 
-// window size must be a multiple of 28
-const unsigned int window_x = 256;
-const unsigned int window_y = 168;
+// window_y must be a multiple of 28
+const unsigned int window_x = 650;
+const unsigned int window_y = 560;
+
+constexpr int mnist_size = 28;
+
+constexpr int scale = window_y / mnist_size;
+
+constexpr int digits_image_x = 65;
+constexpr int digits_image_y = 537;
+
+// network
+constexpr int input_size = mnist_size*mnist_size;
+constexpr int dense1_size = 128;
+constexpr int dense2_size = 10;
 
 void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer){
-    constexpr int scale = 6;
-    constexpr int width = 28;
-    constexpr int height = 28;
 
-    for (int y = 0; y < height; y++){
-        for (int x = 0; x < width; x++){
+    for (int y = 0; y < mnist_size; y++){ // height
+        for (int x = 0; x < mnist_size; x++){ // width
             int accumulator = 0;
             for (int j = 0; j < scale; j++){
                 for (int i = 0; i < scale; i++){
-                    int index = ((y * scale + j) * scale * width + (x * scale + i)) * 4;
+                    int index = ((y * scale + j) * scale * mnist_size + (x * scale + i)) * 4; // width
                     int r = static_cast<int>(in_buffer[index]);
                     // int g = static_cast<int>(in_buffer[index + 1]);
                     // int b = static_cast<int>(in_buffer[index + 2]);
                     accumulator += r; //+ g + b;
                 }
             }
-            out_buffer[y * width + x] = static_cast<uint8_t>(accumulator / (scale * scale)); // * 3 average rgb to get grayscale
+            // * 3 average rgb to get grayscale
+            out_buffer[y * mnist_size + x] = static_cast<uint8_t>(accumulator / (scale * scale)); // width
         }
     }
 }
 
 void duplicate(uint8_t* in_buffer, uint8_t* out_buffer){
-    for (int i = 0; i < 28*28; i++){
+    for (int i = 0; i < mnist_size*mnist_size; i++){
         out_buffer[4*i] = in_buffer[i];
         out_buffer[4*i + 1] = in_buffer[i];
         out_buffer[4*i + 2] = in_buffer[i];
@@ -35,23 +45,34 @@ void duplicate(uint8_t* in_buffer, uint8_t* out_buffer){
     }
 }
 
-void update(uint8_t* buffer, int x, int y){
-    x = x / 6 * 6;
-    y = y / 6 * 6;
-    for (int j = 0; j < 6; j++){
-        for (int i = 0; i < 6; i++){
-            buffer[((y + j) * 168 + (x + i)) * 4] = 255;
+void update_pixel(uint8_t* buffer, int x, int y){
+    if (x < 0 || y < 0 || x >= window_y || y >= window_y)
+        return;
+
+    for (int j = 0; j < scale; j++){
+        for (int i = 0; i < scale; i++){
+            buffer[((y + j) * window_y + (x + i)) * 4] = 255;
         }
     }
 }
 
+void update(uint8_t* buffer, int x, int y){
+
+    x = x / scale * scale;
+    y = y / scale * scale;
+
+    update_pixel(buffer, x, y);
+
+    update_pixel(buffer, x-scale, y);
+    update_pixel(buffer, x+scale, y);
+
+    update_pixel(buffer, x, y-scale);
+    update_pixel(buffer, x, y+scale);
+}
 
 
 void load_weights(int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias){
-    
-    constexpr int input_size = 28*28;
-    constexpr int dense1_size = 128;
-    constexpr int dense2_size = 10;
+
     std::string input_path = "./mnist_simple_layers";
 
     std::ifstream weights_stream;
@@ -99,10 +120,6 @@ void run_network(uint8_t* input_buffer,
                  int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias,
                  int* output_buffer){
     
-    constexpr int input_size = 28*28;
-    constexpr int dense1_size = 128;
-    constexpr int dense2_size = 10;
-    
     int layer1_output[dense1_size];
 
     // layer 1
@@ -129,16 +146,14 @@ void run_network(uint8_t* input_buffer,
     }
 }
 
-void load_digit_image(uint8_t* image_buffer, int digit){
-    std::string input_path = "./digits_images/" + std::to_string(digit) + ".data";
-
-    constexpr int image_size = 36;
+void load_digit_image(uint8_t* image_buffer){
+    std::string input_path = "./digits_images/all_digits.data";
     
     std::ifstream image_stream;
     image_stream.open(input_path, std::ios::binary);
     if (image_stream.is_open())
         image_stream.read(reinterpret_cast<char*>(image_buffer), 
-                            image_size*image_size*4*sizeof(uint8_t)); // * 4 is for rgba
+                            digits_image_x*digits_image_y*4*sizeof(uint8_t)); // * 4 is for rgba
     else
         std::cout << "error loading weights \n";
 
@@ -147,17 +162,16 @@ void load_digit_image(uint8_t* image_buffer, int digit){
 
 
 int main(){
-    assert(window_y % 28 == 0);
+    assert(window_y % mnist_size == 0);
 
     sf::RenderWindow window(sf::VideoMode(window_x, window_y), "MNIST x86");
     uint8_t buffer[window_y * window_y * 4] = {};
 
-    uint8_t mnist_buffer[28*28] = {};
-    uint8_t draw_mnist_buffer[28*28*4] = {};
+    uint8_t mnist_buffer[mnist_size*mnist_size] = {};
+    uint8_t draw_mnist_buffer[mnist_size*mnist_size*4] = {};
 
-    // image size is 36x36
-    uint8_t digit_1[36*36*4] = {};
-    load_digit_image(digit_1, 1);
+    uint8_t digits_buffer[digits_image_x*digits_image_y*4] = {};
+    load_digit_image(digits_buffer);
 
     // set alpha values to 255
     for (int i = 0; i < window_y * window_y; i++){
@@ -170,20 +184,16 @@ int main(){
     sf::Sprite sprite(texture);
 
     sf::Texture mnist_texture;
-    mnist_texture.create(28, 28);
+    mnist_texture.create(mnist_size, mnist_size);
     mnist_texture.update(draw_mnist_buffer);
     sf::Sprite mnist_sprite(mnist_texture);
 
+    // 65x558
     sf::Texture digit_1_texture;
-    digit_1_texture.create(36, 36);
-    digit_1_texture.update(digit_1);
+    digit_1_texture.create(digits_image_x, digits_image_y);
+    digit_1_texture.update(digits_buffer);
     sf::Sprite digit_1_sprite(digit_1_texture);
     digit_1_sprite.setPosition(window_y + 10, 0);
-
-    // network
-    constexpr int input_size = 28*28;
-    constexpr int dense1_size = 128;
-    constexpr int dense2_size = 10;
 
     int dense1_weights[input_size*dense1_size] = {};
     int dense1_bias[dense1_size] = {};
@@ -219,6 +229,11 @@ int main(){
             clear(buffer);
             texture.update(buffer);
             sprite.setTexture(texture);
+
+            quantize_screen(buffer, mnist_buffer);
+            duplicate(mnist_buffer, draw_mnist_buffer);
+            mnist_texture.update(draw_mnist_buffer);
+            mnist_sprite.setTexture(mnist_texture);
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)){

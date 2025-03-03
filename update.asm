@@ -12,9 +12,7 @@ section .text
 %define pixel_size 4
 
 ; window size must be a multiple of 28
-%define window_x 168
-%define window_y 168
-
+%define window_size 560
 
 ; void update(uint8_t* buffer, int x, int y);
 update:
@@ -31,16 +29,16 @@ update:
     cmp rdx, 0
     jl return
 
-    cmp rdx, window_x
+    cmp rdx, window_size
     jge return
 
     cmp r8, 0
     jl return
 
-    cmp r8, window_y
+    cmp r8, window_size
     jge return
 
-    imul r8d, window_x                                 ; r8d    = r8d * window_x
+    imul r8d, window_size                                 ; r8d    = r8d * window_size
     add  r8,  rdx                                      ; r8d += mouse x position
     ; now contains the index of the pixel to be set.
 
@@ -66,8 +64,8 @@ clear:
     
     ; buffer pointer in rcx
 
-    mov QWORD rax, window_x
-    mov QWORD r9, window_y
+    mov QWORD rax, window_size
+    mov QWORD r9, window_size
     mul r9                                             ; rdx:rax = rax * r9d
     ; rax now has the size of the window
 
