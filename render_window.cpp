@@ -129,6 +129,22 @@ void run_network(uint8_t* input_buffer,
     }
 }
 
+void load_digit_image(uint8_t* image_buffer, int digit){
+    std::string input_path = "./digits_images/" + std::to_string(digit) + ".data";
+
+    constexpr int image_size = 36;
+    
+    std::ifstream image_stream;
+    image_stream.open(input_path, std::ios::binary);
+    if (image_stream.is_open())
+        image_stream.read(reinterpret_cast<char*>(image_buffer), 
+                            image_size*image_size*4*sizeof(uint8_t)); // * 4 is for rgba
+    else
+        std::cout << "error loading weights \n";
+
+    image_stream.close();
+}
+
 
 int main(){
     assert(window_y % 28 == 0);
@@ -138,6 +154,10 @@ int main(){
 
     uint8_t mnist_buffer[28*28] = {};
     uint8_t draw_mnist_buffer[28*28*4] = {};
+
+    // image size is 36x36
+    uint8_t digit_1[36*36*4] = {};
+    load_digit_image(digit_1, 1);
 
     // set alpha values to 255
     for (int i = 0; i < window_y * window_y; i++){
@@ -153,6 +173,12 @@ int main(){
     mnist_texture.create(28, 28);
     mnist_texture.update(draw_mnist_buffer);
     sf::Sprite mnist_sprite(mnist_texture);
+
+    sf::Texture digit_1_texture;
+    digit_1_texture.create(36, 36);
+    digit_1_texture.update(digit_1);
+    sf::Sprite digit_1_sprite(digit_1_texture);
+    digit_1_sprite.setPosition(window_y + 10, 0);
 
     // network
     constexpr int input_size = 28*28;
@@ -217,6 +243,7 @@ int main(){
         window.clear();
         window.draw(sprite);
         window.draw(mnist_sprite);
+        window.draw(digit_1_sprite);
         window.display();
     }
     return 0;
