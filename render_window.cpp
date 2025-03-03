@@ -1,7 +1,7 @@
 #include "render_window.hpp"
 
 // window size must be a multiple of 28
-const unsigned int window_x = 168;
+const unsigned int window_x = 256;
 const unsigned int window_y = 168;
 
 void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer){
@@ -131,22 +131,21 @@ void run_network(uint8_t* input_buffer,
 
 
 int main(){
-    assert(window_x % 28 == 0);
     assert(window_y % 28 == 0);
 
     sf::RenderWindow window(sf::VideoMode(window_x, window_y), "MNIST x86");
-    uint8_t buffer[window_x * window_y * 4] = {};
+    uint8_t buffer[window_y * window_y * 4] = {};
 
     uint8_t mnist_buffer[28*28] = {};
     uint8_t draw_mnist_buffer[28*28*4] = {};
 
     // set alpha values to 255
-    for (int i = 0; i < window_x * window_y; i++){
+    for (int i = 0; i < window_y * window_y; i++){
         buffer[i*4+3] = 255;
     }
 
     sf::Texture texture;
-    texture.create(window_x, window_y);
+    texture.create(window_y, window_y);
     texture.update(buffer);
     sf::Sprite sprite(texture);
 
@@ -201,7 +200,17 @@ int main(){
             for (int i = 0; i < dense2_size; i++){
                 std::cout << output_buffer[i]/256 << std::endl;
             }
+
+            int max = -10000000;
+            int val = 0;
+            for (int i = 0; i < dense2_size; i++){
+                if (output_buffer[i]/256 > max){
+                    max = output_buffer[i]/256;
+                    val = i;
+                }
+            }
             std::cout << "===================\n";
+            std::cout << "number is: " << val << std::endl;
             std::cout << "===================\n";
         }
 

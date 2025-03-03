@@ -1,5 +1,7 @@
 SFML-2.6.1
 test.cpp
+digits_images/digits_images.xcf
+digits_images/digits.png
 *.exe
 *.obj
 *.pdb
