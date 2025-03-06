@@ -12,6 +12,9 @@ int main(){
     uint8_t digits_buffer[digits_image_x*digits_image_y*4] = {};
     load_digit_image(digits_buffer);
 
+    uint8_t saved_digits_buffer[digits_image_x*digits_image_y*4] = {};
+    load_digit_image(saved_digits_buffer);
+
     // set alpha values to 255
     for (int i = 0; i < window_y * window_y; i++){
         buffer[i*4+3] = 255;
@@ -54,32 +57,30 @@ int main(){
             }
         }
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-            update(buffer, sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
+            update_on_mouse_click(buffer, sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y);
             texture.update(buffer);
             sprite.setTexture(texture);
 
-            quantize_screen(buffer, mnist_buffer);
-            duplicate(mnist_buffer, draw_mnist_buffer);
+            get_draw_region_data(buffer, mnist_buffer);
+            expand_to_rgba(mnist_buffer, draw_mnist_buffer);
             mnist_texture.update(draw_mnist_buffer);
             mnist_sprite.setTexture(mnist_texture);
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Right)){
             clear_draw_region(buffer);
+
             texture.update(buffer);
             sprite.setTexture(texture);
 
-            quantize_screen(buffer, mnist_buffer);
-            duplicate(mnist_buffer, draw_mnist_buffer);
+            get_draw_region_data(buffer, mnist_buffer);
+            expand_to_rgba(mnist_buffer, draw_mnist_buffer);
             mnist_texture.update(draw_mnist_buffer);
             mnist_sprite.setTexture(mnist_texture);
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)){
             run_network(mnist_buffer, dense1_weights, dense1_bias, dense2_weights, dense2_bias, output_buffer);
-            for (int i = 0; i < dense2_size; i++){
-                std::cout << output_buffer[i]/256 << std::endl;
-            }
 
             int max = -10000000;
             int val = 0;
@@ -89,9 +90,16 @@ int main(){
                     val = i;
                 }
             }
-            std::cout << "===================\n";
+
             std::cout << "number is: " << val << std::endl;
-            std::cout << "===================\n";
+
+            for (int i = 0; i < digits_image_x*digits_image_y*4; i++){
+                digits_buffer[i] = saved_digits_buffer[i];
+            }
+
+            draw_circle(digits_buffer, 32, 22 + std::max(0, val - 1)*62, 20);
+            digit_1_texture.update(digits_buffer);
+            digit_1_sprite.setTexture(digit_1_texture);
         }
 
         window.clear();

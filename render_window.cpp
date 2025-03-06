@@ -1,36 +1,39 @@
 #include "render_window.hpp"
 
+void draw_pixel(uint8_t* buffer, int x, int y, int value){ // red for now
+    buffer[4*(window_y*y + x)] = value;
+}
+
+void draw_pixel_on_digit(uint8_t* buffer, int x, int y, int value){ // red for now
+    buffer[4*(65*y + x)] = value;
+}
+
+// performs bound checks
+void draw_pixel_on_digit_safe(uint8_t* buffer, int x, int y, int value){ // red for now
+    if (x < 0 || y < 0 || x >= 65 || y >= 558)
+        return;
+    
+    draw_pixel_on_digit(buffer, x, y, value);
+}
+
 void clear_draw_region(uint8_t* buffer){
-    for (int y; y < window_y; y++){
-        for (int x; x < window_y; x++){
-            buffer[window_y*y + x] = 0;
-            buffer[window_y*y + x + 1] = 0;
-            buffer[window_y*y + x + 2] = 0;
+    for (int y = 0; y < window_y; y++){
+        for (int x = 0; x < window_y; x++){
+            draw_pixel(buffer, x, y, 0);
         }
     }
 }
 
-void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer){
-
-    for (int y = 0; y < mnist_size; y++){ // height
-        for (int x = 0; x < mnist_size; x++){ // width
-            int accumulator = 0;
-            for (int j = 0; j < scale; j++){
-                for (int i = 0; i < scale; i++){
-                    int index = ((y * scale + j) * scale * mnist_size + (x * scale + i)) * 4; // width
-                    int r = static_cast<int>(in_buffer[index]);
-                    // int g = static_cast<int>(in_buffer[index + 1]);
-                    // int b = static_cast<int>(in_buffer[index + 2]);
-                    accumulator += r; //+ g + b;
-                }
-            }
-            // * 3 average rgb to get grayscale
-            out_buffer[y * mnist_size + x] = static_cast<uint8_t>(accumulator / (scale * scale)); // width
+void get_draw_region_data(uint8_t* in_buffer, uint8_t* out_buffer){
+    for (int y = 0; y < mnist_size; y++){
+        for (int x = 0; x < mnist_size; x++){
+            out_buffer[y * mnist_size + x] = in_buffer[(y * scale * window_y + x * scale) * 4];
         }
     }
 }
 
-void duplicate(uint8_t* in_buffer, uint8_t* out_buffer){
+// debug function
+void expand_to_rgba(uint8_t* in_buffer, uint8_t* out_buffer){
     for (int i = 0; i < mnist_size*mnist_size; i++){
         out_buffer[4*i] = in_buffer[i];
         out_buffer[4*i + 1] = in_buffer[i];
@@ -39,7 +42,7 @@ void duplicate(uint8_t* in_buffer, uint8_t* out_buffer){
     }
 }
 
-void update_quantized_pixel(uint8_t* buffer, int x, int y){
+void update_draw_region_pixel(uint8_t* buffer, int x, int y){
     if (x < 0 || y < 0 || x >= window_y || y >= window_y)
         return;
 
@@ -50,18 +53,18 @@ void update_quantized_pixel(uint8_t* buffer, int x, int y){
     }
 }
 
-void update(uint8_t* buffer, int x, int y){
+void update_on_mouse_click(uint8_t* buffer, int x, int y){
 
     x = x / scale * scale;
     y = y / scale * scale;
 
-    update_quantized_pixel(buffer, x, y);
+    update_draw_region_pixel(buffer, x, y);
 
-    update_quantized_pixel(buffer, x-scale, y);
-    update_quantized_pixel(buffer, x+scale, y);
+    update_draw_region_pixel(buffer, x-scale, y);
+    update_draw_region_pixel(buffer, x+scale, y);
 
-    update_quantized_pixel(buffer, x, y-scale);
-    update_quantized_pixel(buffer, x, y+scale);
+    update_draw_region_pixel(buffer, x, y-scale);
+    update_draw_region_pixel(buffer, x, y+scale);
 }
 
 void load_digit_image(uint8_t* image_buffer){
@@ -78,18 +81,29 @@ void load_digit_image(uint8_t* image_buffer){
     image_stream.close();
 }
 
-void draw_circle(uint8_t* buffer, int x, int y, int r){
+void draw_circle(uint8_t* buffer, int center_x, int center_y, int r){
     // midpoint circle algorithm
-    int x_ = x;
-    int y_ = y - r;
+    int x = 0;
+    int y = -r;
     int p = -r;
 
-    while (x_ < -y_){
+    while (x < -y){
         if (p > 0){
-            y_ += 1;
-            p += 2*(x_ + y_) + 1;
+            y += 1;
+            p += 2*(x + y) + 1;
         } else {
             p += 2*x + 1;
         }
+
+        draw_pixel_on_digit_safe(buffer, center_x + x, center_y + y, 255);
+        draw_pixel_on_digit_safe(buffer, center_x - x, center_y + y, 255);
+        draw_pixel_on_digit_safe(buffer, center_x + x, center_y - y, 255);
+        draw_pixel_on_digit_safe(buffer, center_x - x, center_y - y, 255);
+
+        draw_pixel_on_digit_safe(buffer, center_x + y, center_y + x, 255);
+        draw_pixel_on_digit_safe(buffer, center_x + y, center_y - x, 255);
+        draw_pixel_on_digit_safe(buffer, center_x - y, center_y + x, 255);
+        draw_pixel_on_digit_safe(buffer, center_x - y, center_y - x, 255);
+        x += 1;
     }
 }
