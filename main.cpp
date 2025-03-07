@@ -7,7 +7,6 @@ int main(){
     uint8_t buffer[window_y * window_y * 4] = {};
 
     uint8_t mnist_buffer[mnist_size*mnist_size] = {};
-    uint8_t draw_mnist_buffer[mnist_size*mnist_size*4] = {};
 
     uint8_t digits_buffer[digits_image_x*digits_image_y*4] = {};
     load_digit_image(digits_buffer);
@@ -25,16 +24,11 @@ int main(){
     texture.update(buffer);
     sf::Sprite sprite(texture);
 
-    sf::Texture mnist_texture;
-    mnist_texture.create(mnist_size, mnist_size);
-    mnist_texture.update(draw_mnist_buffer);
-    sf::Sprite mnist_sprite(mnist_texture);
-
-    sf::Texture digit_1_texture;
-    digit_1_texture.create(digits_image_x, digits_image_y);
-    digit_1_texture.update(digits_buffer);
-    sf::Sprite digit_1_sprite(digit_1_texture);
-    digit_1_sprite.setPosition(window_y + 10, 0);
+    sf::Texture digits_texture;
+    digits_texture.create(digits_image_x, digits_image_y);
+    digits_texture.update(digits_buffer);
+    sf::Sprite digits_sprite(digits_texture);
+    digits_sprite.setPosition(window_y + 10, 0);
 
     int dense1_weights[input_size*dense1_size] = {};
     int dense1_bias[dense1_size] = {};
@@ -61,9 +55,6 @@ int main(){
             sprite.setTexture(texture);
 
             get_draw_region_data(buffer, mnist_buffer);
-            expand_to_rgba(mnist_buffer, draw_mnist_buffer);
-            mnist_texture.update(draw_mnist_buffer);
-            mnist_sprite.setTexture(mnist_texture);
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Right)){
@@ -73,9 +64,6 @@ int main(){
             sprite.setTexture(texture);
 
             get_draw_region_data(buffer, mnist_buffer);
-            expand_to_rgba(mnist_buffer, draw_mnist_buffer);
-            mnist_texture.update(draw_mnist_buffer);
-            mnist_sprite.setTexture(mnist_texture);
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)){
@@ -97,14 +85,13 @@ int main(){
             }
 
             draw_circle(digits_buffer, 25, 24 + val*digits_image_y/10, 20);
-            digit_1_texture.update(digits_buffer);
-            digit_1_sprite.setTexture(digit_1_texture);
+            digits_texture.update(digits_buffer);
+            digits_sprite.setTexture(digits_texture);
         }
 
         window.clear();
         window.draw(sprite);
-        window.draw(mnist_sprite);
-        window.draw(digit_1_sprite);
+        window.draw(digits_sprite);
         window.display();
     }
     return 0;

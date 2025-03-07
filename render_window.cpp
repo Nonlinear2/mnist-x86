@@ -32,16 +32,6 @@ void get_draw_region_data(uint8_t* in_buffer, uint8_t* out_buffer){
     }
 }
 
-// debug function
-void expand_to_rgba(uint8_t* in_buffer, uint8_t* out_buffer){
-    for (int i = 0; i < mnist_size*mnist_size; i++){
-        out_buffer[4*i] = in_buffer[i];
-        out_buffer[4*i + 1] = in_buffer[i];
-        out_buffer[4*i + 2] = in_buffer[i];
-        out_buffer[4*i + 3] = 255;
-    }
-}
-
 void update_draw_region_pixel(uint8_t* buffer, int x, int y){
     if (x < 0 || y < 0 || x >= window_y || y >= window_y)
         return;
@@ -73,7 +63,7 @@ void load_digit_image(uint8_t* image_buffer){
     std::ifstream image_stream;
     image_stream.open(input_path, std::ios::binary);
     if (image_stream.is_open())
-        image_stream.read(reinterpret_cast<char*>(image_buffer), 
+        image_stream.read(reinterpret_cast<char*>(image_buffer),
                             digits_image_x*digits_image_y*4*sizeof(uint8_t)); // * 4 is for rgba
     else
         std::cout << "error loading weights \n";
