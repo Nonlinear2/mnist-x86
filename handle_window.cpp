@@ -1,4 +1,4 @@
-#include "render_window.hpp"
+#include "handle_window.hpp"
 
 void draw_pixel(uint8_t* buffer, int x, int y, int value){ // red for now
     buffer[4*(window_y*y + x)] = value;
