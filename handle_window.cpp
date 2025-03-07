@@ -33,7 +33,7 @@ void get_draw_region_data(uint8_t* draw_buffer, uint8_t* out_buffer){
 }
 
 void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y){
-    if (x < 0 || y < 0 || x >= draw_region_size || y >= draw_region_size)
+    if (x < 0 || x >= draw_region_size || y < 0 || y >= draw_region_size)
         return;
 
     for (int j = 0; j < scale; j++){

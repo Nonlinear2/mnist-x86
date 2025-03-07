@@ -11,17 +11,75 @@ section .text
 
 
 ; window_y must be a multiple of 28
-%define window_x 650;
-%define  window_y 560;
+%define window_x 650
+%define window_y 560
 
-%define  mnist_size 28;
+%define mnist_size 28
 
-%define scale window_y / mnist_size;
+%define draw_region_size window_y
 
-%define digits_image_x 50;
-%define digits_image_y 560;
+%define scale window_y / mnist_size
 
-; void update_on_mouse_click(uint8_t* buffer, int x, int y);
+%define digits_image_x 50
+%define digits_image_y 560
+
+; void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y);
+update_draw_region_pixel:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    
+    ; buffer pointer in rcx
+    ; mouse x position in rdx
+    ; mouse y position in r8
+
+    ; bounds checks:
+    cmp rdx, 0
+    jl return
+
+    cmp rdx, draw_region_size
+    jge return
+
+    cmp r8, 0
+    jl return
+
+    cmp r8, draw_region_size
+    jge return
+
+    ; nested loop to draw a square
+    xor rax, rax                                       ; set rax to 0
+    .loop:
+
+    xor rbx, rbx                                       ; set rbx to 0
+    ..loop:
+
+    ; draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
+    mov r9, r8
+    add r9, rbx
+    mul r9, draw_region_size
+    add r9, rdx
+    add r9, rax
+    shl r9, 2       ; multiply by 4
+    mov byte [rcx + r9], 255
+
+    inc rbx
+    cmp rbx, draw_region_size
+    jl ..loop
+
+    inc rax
+    cmp rax, draw_region_size
+    jl .loop
+
+    .return:
+    ; Function epilogue
+    mov eax, 0                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
+; void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 update_on_mouse_click:
     ; Function prologue
     push    rbp
