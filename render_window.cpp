@@ -5,12 +5,12 @@ void draw_pixel(uint8_t* buffer, int x, int y, int value){ // red for now
 }
 
 void draw_pixel_on_digit(uint8_t* buffer, int x, int y, int value){ // red for now
-    buffer[4*(65*y + x)] = value;
+    buffer[4*(digits_image_x*y + x)] = value;
 }
 
 // performs bound checks
 void draw_pixel_on_digit_safe(uint8_t* buffer, int x, int y, int value){ // red for now
-    if (x < 0 || y < 0 || x >= 65 || y >= 558)
+    if (x < 0 || y < 0 || x >= digits_image_x || y >= digits_image_y)
         return;
     
     draw_pixel_on_digit(buffer, x, y, value);

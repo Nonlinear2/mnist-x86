@@ -30,7 +30,6 @@ int main(){
     mnist_texture.update(draw_mnist_buffer);
     sf::Sprite mnist_sprite(mnist_texture);
 
-    // 65x558
     sf::Texture digit_1_texture;
     digit_1_texture.create(digits_image_x, digits_image_y);
     digit_1_texture.update(digits_buffer);
@@ -97,7 +96,7 @@ int main(){
                 digits_buffer[i] = saved_digits_buffer[i];
             }
 
-            draw_circle(digits_buffer, 32, 22 + std::max(0, val - 1)*62, 20);
+            draw_circle(digits_buffer, 25, 24 + val*digits_image_y/10, 20);
             digit_1_texture.update(digits_buffer);
             digit_1_sprite.setTexture(digit_1_texture);
         }

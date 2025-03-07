@@ -8,8 +8,8 @@ constexpr int mnist_size = 28;
 
 constexpr int scale = window_y / mnist_size;
 
-constexpr int digits_image_x = 65;
-constexpr int digits_image_y = 537;
+constexpr int digits_image_x = 50;
+constexpr int digits_image_y = 560;
 
 // network
 constexpr int input_size = mnist_size*mnist_size;
