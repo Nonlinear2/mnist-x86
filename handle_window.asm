@@ -1,5 +1,5 @@
-global update
-global clear
+global update_on_mouse_click
+global clear_draw_region
 extern printf
 
 
@@ -9,13 +9,20 @@ message db 'value is %d', 10, 0                      ; 10 is newline, 0 is strin
 
 section .text
 
-%define pixel_size 4
 
-; window size must be a multiple of 28
-%define window_size 560
+; window_y must be a multiple of 28
+%define window_x 650;
+%define  window_y 560;
 
-; void update(uint8_t* buffer, int x, int y);
-update:
+%define  mnist_size 28;
+
+%define scale window_y / mnist_size;
+
+%define digits_image_x 50;
+%define digits_image_y 560;
+
+; void update_on_mouse_click(uint8_t* buffer, int x, int y);
+update_on_mouse_click:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
@@ -54,9 +61,8 @@ update:
     pop rbp ; Restore the caller's base pointer value
     ret
 
-
-; void clear(uint8_t* buffer);
-clear:
+; void clear_draw_region(uint8_t* buffer);
+clear_draw_region:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
