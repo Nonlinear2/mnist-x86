@@ -19,6 +19,7 @@ void clear_draw_region(uint8_t* draw_buffer);
 
 void get_draw_region_data(uint8_t* draw_buffer, uint8_t* mnist_buffer);
 
+// extern "C" void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y);
 void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y);
 
 void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
