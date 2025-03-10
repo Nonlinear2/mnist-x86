@@ -32,16 +32,16 @@ void get_draw_region_data(uint8_t* draw_buffer, uint8_t* out_buffer){
     }
 }
 
-void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y){
-    if (x < 0 || x >= draw_region_size || y < 0 || y >= draw_region_size)
-        return;
+// void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y){
+//     if (x < 0 || x >= draw_region_size || y < 0 || y >= draw_region_size)
+//         return;
 
-    for (int j = 0; j < scale; j++){
-        for (int i = 0; i < scale; i++){
-            draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
-        }
-    }
-}
+//     for (int j = 0; j < scale; j++){
+//         for (int i = 0; i < scale; i++){
+//             draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
+//         }
+//     }
+// }
 
 void update_on_mouse_click(uint8_t* draw_buffer, int x, int y){
 

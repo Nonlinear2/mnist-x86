@@ -52,29 +52,29 @@ update_draw_region_pixel:
     xor rax, rax                                       ; set rax to 0
     .loop:
 
-    xor rbx, rbx                                       ; set rbx to 0
+    xor r10, r10                                       ; set r10 to 0
     .inner_loop:
 
-    ; draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
+    ; ; draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
     mov r9, r8
-    add r9, rbx
+    add r9, r10
     imul r9, draw_region_size
     add r9, rdx
     add r9, rax
     shl r9, 2       ; multiply by 4
     mov byte [rcx + r9], 255
 
-    inc rbx
-    cmp rbx, draw_region_size
+    inc r10
+    cmp r10, scale
     jl .inner_loop
 
     inc rax
-    cmp rax, draw_region_size
+    cmp rax, scale
     jl .loop
 
     .return:
     ; Function epilogue
-    mov eax, 0                  ; Return 0
+    mov rax, 0                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
