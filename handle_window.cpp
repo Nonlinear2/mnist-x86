@@ -15,13 +15,13 @@
 //     }
 // }
 
-void clear_draw_region(uint8_t* draw_buffer){
-    for (int y = 0; y < draw_region_size; y++){
-        for (int x = 0; x < draw_region_size; x++){
-            draw_pixel(draw_buffer, x, y, 0);
-        }
-    }
-}
+// void clear_draw_region(uint8_t* draw_buffer){
+//     for (int y = 0; y < draw_region_size; y++){
+//         for (int x = 0; x < draw_region_size; x++){
+//             draw_pixel(draw_buffer, x, y, 0);
+//         }
+//     }
+// }
 
 void get_draw_region_features(uint8_t* draw_buffer, uint8_t* out_buffer){
     for (int y = 0; y < mnist_size; y++){
