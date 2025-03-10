@@ -44,7 +44,7 @@ int main(){
             texture.update(buffer);
             sprite.setTexture(texture);
 
-            get_draw_region_data(buffer, mnist_buffer);
+            get_draw_region_features(buffer, mnist_buffer);
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)){
@@ -53,7 +53,7 @@ int main(){
             texture.update(buffer);
             sprite.setTexture(texture);
 
-            get_draw_region_data(buffer, mnist_buffer);
+            get_draw_region_features(buffer, mnist_buffer);
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)){
@@ -74,7 +74,7 @@ int main(){
                 digits_buffer[i] = saved_digits_buffer[i];
             }
 
-            draw_circle(digits_buffer, 25, 24 + val*digits_image_y/10, 20);
+            draw_circle_on_digits(digits_buffer, 25, 24 + val*digits_image_y/10, 20);
             digits_texture.update(digits_buffer);
             digits_sprite.setTexture(digits_texture);
         }

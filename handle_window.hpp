@@ -11,19 +11,17 @@
 
 void draw_pixel(uint8_t* draw_buffer, int x, int y, int value);
 
-void draw_pixel_on_digit(uint8_t* digits_buffer, int x, int y, int value);
-
-void draw_pixel_on_digit_safe(uint8_t* digits_buffer, int x, int y, int value);
+extern "C" void draw_square(uint8_t* draw_buffer, int x, int y);
+// void draw_square(uint8_t* draw_buffer, int x, int y);
 
 void clear_draw_region(uint8_t* draw_buffer);
 
-void get_draw_region_data(uint8_t* draw_buffer, uint8_t* mnist_buffer);
-
-extern "C" void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y);
-// void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y);
+void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
 
 void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 
 void load_digit_image(uint8_t* digits_buffer);
 
-void draw_circle(uint8_t* digits_buffer, int x, int y, int r);
+void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
+
+void draw_circle_on_digits(uint8_t* digits_buffer, int x, int y, int r);

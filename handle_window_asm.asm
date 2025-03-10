@@ -1,6 +1,6 @@
 ; global update_on_mouse_click
 ; global clear_draw_region
-global update_draw_region_pixel
+global draw_square
 extern printf
 
 
@@ -24,8 +24,8 @@ section .text
 %define digits_image_x 50
 %define digits_image_y 560
 
-; void update_draw_region_pixel(uint8_t* draw_buffer, int x, int y);
-update_draw_region_pixel:
+; void draw_square(uint8_t* draw_buffer, int x, int y);
+draw_square:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
@@ -114,7 +114,7 @@ update_draw_region_pixel:
 
 ;     return:
 ;     ; Function epilogue
-;     mov eax, 0                  ; Return 0
+;     mov rax, 0                  ; Return 0
 
 ;     mov rsp, rbp ; Deallocate local variables
 ;     pop rbp ; Restore the caller's base pointer value
@@ -160,7 +160,7 @@ update_draw_region_pixel:
 ;     sub QWORD rcx, 3                                   ; restore the value of rcx
 
 ;     ; Function epilogue
-;     mov eax, 0                  ; Return 0
+;     mov rax, 0                  ; Return 0
 
 ;     mov rsp, rbp ; Deallocate local variables
 ;     pop rbp ; Restore the caller's base pointer value
@@ -218,7 +218,7 @@ update_draw_region_pixel:
         
 
 ; ;     ; Function epilogue
-; ;     mov eax, 0                  ; Return 0
+; ;     mov rax, 0                  ; Return 0
 
 ; ;     mov rsp, rbp ; Deallocate local variables
 ; ;     pop rbp ; Restore the caller's base pointer value
