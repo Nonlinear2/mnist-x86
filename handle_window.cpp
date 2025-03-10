@@ -1,8 +1,8 @@
 #include "handle_window.hpp"
 
-void draw_pixel(uint8_t* draw_buffer, int x, int y, int value){ // red for now
-    draw_buffer[4*(draw_region_size*y + x)] = value;
-}
+// void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value){
+//     draw_buffer[4*(draw_region_size*y + x)] = value;
+// }
 
 // void draw_square(uint8_t* draw_buffer, int x, int y){
 //     if (x < 0 || x >= draw_region_size || y < 0 || y >= draw_region_size)

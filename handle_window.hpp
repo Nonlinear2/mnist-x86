@@ -7,13 +7,13 @@
 #include <fstream>
 #include "constants.hpp"
 
-// extern "C" void clear_draw_region(uint8_t* buffer);
-
-void draw_pixel(uint8_t* draw_buffer, int x, int y, int value);
+extern "C" void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value);
+// void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value);
 
 extern "C" void draw_square(uint8_t* draw_buffer, int x, int y);
 // void draw_square(uint8_t* draw_buffer, int x, int y);
 
+// extern "C" void clear_draw_region(uint8_t* buffer);
 void clear_draw_region(uint8_t* draw_buffer);
 
 void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);

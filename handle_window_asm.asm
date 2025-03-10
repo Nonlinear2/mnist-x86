@@ -1,6 +1,8 @@
-; global update_on_mouse_click
-; global clear_draw_region
+global draw_pixel
 global draw_square
+global clear_draw_region
+; global update_on_mouse_click
+
 extern printf
 
 
@@ -23,6 +25,32 @@ section .text
 
 %define digits_image_x 50
 %define digits_image_y 560
+
+; void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value)
+draw_pixel:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    
+    ; buffer pointer in rcx
+    ; mouse x position in rdx
+    ; mouse y position in r8
+    ; value in r9
+
+    ; draw_buffer[4*(draw_region_size*y + x)] = value;
+    imul r8, draw_region_size
+    add r8, rdx
+    shl r8, 2                   ; multiply by 4
+    mov byte [rcx + r8], r9b
+
+    ; Function epilogue
+    mov rax, 0                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
 
 ; void draw_square(uint8_t* draw_buffer, int x, int y);
 draw_square:
@@ -55,7 +83,7 @@ draw_square:
     xor r10, r10                                       ; set r10 to 0
     .inner_loop:
 
-    ; ; draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
+    ; draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
     mov r9, r8
     add r9, r10
     imul r9, draw_region_size
@@ -79,6 +107,54 @@ draw_square:
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
+
+
+; void clear_draw_region(uint8_t* buffer);
+clear_draw_region:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                    ; Reserve 32 bytes of shadow space
+    
+    ; buffer pointer in rcx
+
+    mov QWORD rax, draw_region_size
+    mov QWORD r9, draw_region_size
+    mul r9                                             ; rdx:rax = rax * r9d
+    ; rax now has the size of the window
+
+    shl rax, 2                                         ; multiply the index by 4, because it is an RBBA array
+    ; now has 4 times the size of the window
+
+    xor rbx, rbx                                       ; set rbx to 0
+    first_loop:                                        ; clear all values
+    mov byte [rcx + rbx], 0                            
+    inc rbx
+    cmp rbx, rax
+    jl first_loop
+
+
+    shr eax, 2
+
+    add QWORD rcx, 3                                   ; offset to access alpha channel
+
+    xor rbx, rbx                                       ; set rbx to 0
+    second_loop:
+    mov rdx, rbx
+    mov byte [rcx + 4*rbx], 255                        ; set the alpha value to 255
+    inc rbx
+    cmp rbx, rax
+    jl second_loop
+
+    sub QWORD rcx, 3                                   ; restore the value of rcx
+
+    ; Function epilogue
+    mov rax, 0                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
 
 ; ; void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 ; update_on_mouse_click:
@@ -113,52 +189,6 @@ draw_square:
 ;     mov byte [rcx + r8], 255                         ; set the red value to 255
 
 ;     return:
-;     ; Function epilogue
-;     mov rax, 0                  ; Return 0
-
-;     mov rsp, rbp ; Deallocate local variables
-;     pop rbp ; Restore the caller's base pointer value
-;     ret
-
-; ; void clear_draw_region(uint8_t* buffer);
-; clear_draw_region:
-;     ; Function prologue
-;     push    rbp
-;     mov     rbp, rsp
-;     sub     rsp, 32                                    ; Reserve 32 bytes of shadow space
-    
-;     ; buffer pointer in rcx
-
-;     mov QWORD rax, window_size
-;     mov QWORD r9, window_size
-;     mul r9                                             ; rdx:rax = rax * r9d
-;     ; rax now has the size of the window
-
-;     shl eax, 2                                         ; multiply the index by 4, because it is an RBBA array
-;     ; now has 4 times the size of the window
-
-;     xor rbx, rbx                                       ; set rbx to 0
-;     first_loop:                                        ; clear all values
-;     mov byte [rcx + rbx], 0                            
-;     inc rbx
-;     cmp rbx, rax
-;     jl first_loop
-
-
-;     shr eax, 2
-
-;     add QWORD rcx, 3                                   ; offset to access alpha channel
-
-;     xor rbx, rbx                                       ; set rbx to 0
-;     second_loop:
-;     mov rdx, rbx
-;     mov byte [rcx + 4*rbx], 255                        ; set the alpha value to 255
-;     inc rbx
-;     cmp rbx, rax
-;     jl second_loop
-
-;     sub QWORD rcx, 3                                   ; restore the value of rcx
-
 ;     ; Function epilogue
 ;     mov rax, 0                  ; Return 0
 
