@@ -23,13 +23,13 @@
 //     }
 // }
 
-void get_draw_region_features(uint8_t* draw_buffer, uint8_t* out_buffer){
-    for (int y = 0; y < mnist_size; y++){
-        for (int x = 0; x < mnist_size; x++){
-            out_buffer[y * mnist_size + x] = draw_buffer[(y * scale * draw_region_size + x * scale) * 4];
-        }
-    }
-}
+// void get_draw_region_features(uint8_t* draw_buffer, uint8_t* out_buffer){
+//     for (int y = 0; y < mnist_size; y++){
+//         for (int x = 0; x < mnist_size; x++){
+//             out_buffer[y * mnist_size + x] = draw_buffer[(y * scale * draw_region_size + x * scale) * 4];
+//         }
+//     }
+// }
 
 void update_on_mouse_click(uint8_t* draw_buffer, int x, int y){
 

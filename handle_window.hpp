@@ -16,7 +16,8 @@ extern "C" void draw_square(uint8_t* draw_buffer, int x, int y);
 extern "C" void clear_draw_region(uint8_t* buffer);
 // void clear_draw_region(uint8_t* draw_buffer);
 
-void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
+extern "C" void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
+// void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
 
 void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 

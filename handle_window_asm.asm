@@ -1,6 +1,7 @@
 global draw_pixel
 global draw_square
 global clear_draw_region
+global get_draw_region_features
 ; global update_on_mouse_click
 
 extern printf
@@ -119,32 +120,30 @@ clear_draw_region:
     ; buffer pointer in rcx
 
     mov QWORD rax, draw_region_size
-    mov QWORD r9, draw_region_size
-    mul r9                                             ; rdx:rax = rax * r9d
+    imul rax, draw_region_size
     ; rax now has the size of the window
 
     shl rax, 2                                         ; multiply the index by 4, because it is an RBBA array
     ; now has 4 times the size of the window
 
-    xor rbx, rbx                                       ; set rbx to 0
-    first_loop:                                        ; clear all values
-    mov byte [rcx + rbx], 0                            
-    inc rbx
-    cmp rbx, rax
-    jl first_loop
+    xor rdx, rdx                                       ; set rdx to 0
+    .first_loop:                                        ; clear all values
+    mov byte [rcx + rdx], 0                            
+    inc rdx
+    cmp rdx, rax
+    jl .first_loop
 
 
     shr eax, 2
 
     add QWORD rcx, 3                                   ; offset to access alpha channel
 
-    xor rbx, rbx                                       ; set rbx to 0
-    second_loop:
-    mov rdx, rbx
-    mov byte [rcx + 4*rbx], 255                        ; set the alpha value to 255
-    inc rbx
-    cmp rbx, rax
-    jl second_loop
+    xor rdx, rdx                                       ; set rdx to 0
+    .second_loop:
+    mov byte [rcx + 4*rdx], 255                        ; set the alpha value to 255
+    inc rdx
+    cmp rdx, rax
+    jl .second_loop
 
     sub QWORD rcx, 3                                   ; restore the value of rcx
 
@@ -155,6 +154,54 @@ clear_draw_region:
     pop rbp ; Restore the caller's base pointer value
     ret
 
+
+; void get_draw_region_features(uint8_t* draw_buffer, uint8_t* out_buffer);
+get_draw_region_features:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                    ; Reserve 32 bytes of shadow space
+    
+    ; input buffer pointer in rcx
+    ; output buffer pointer in rdx
+
+    ; nested loop to draw a square
+    xor rax, rax                                       ; set rax to 0
+    .loop:
+
+    xor r10, r10                                       ; set r10 to 0
+    .inner_loop:
+
+    ; out_buffer[y * mnist_size + x] = draw_buffer[(y * scale * draw_region_size + x * scale) * 4];
+    mov r8, rax
+    imul r8, scale
+    imul r8, draw_region_size
+    mov r9, r10
+    imul r9, scale
+    add r8, r9
+    shl r8, 2                   ; multiply by 4
+
+    mov r9, rax
+    imul r9, mnist_size
+    add r9, r10
+
+    mov r8b, byte [rcx + r8]
+    mov byte [rdx + r9], r8b
+
+    inc r10
+    cmp r10, scale
+    jl .inner_loop
+
+    inc rax
+    cmp rax, scale
+    jl .loop
+
+    ; Function epilogue
+    mov rax, 0                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
 
 ; ; void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 ; update_on_mouse_click:
