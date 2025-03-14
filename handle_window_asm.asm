@@ -2,7 +2,7 @@ global draw_pixel
 global draw_square
 global clear_draw_region
 global get_draw_region_features
-; global update_on_mouse_click
+global update_on_mouse_click
 
 extern printf
 
@@ -203,45 +203,87 @@ get_draw_region_features:
     pop rbp ; Restore the caller's base pointer value
     ret
 
-; ; void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
-; update_on_mouse_click:
-;     ; Function prologue
-;     push    rbp
-;     mov     rbp, rsp
-;     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+; void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
+update_on_mouse_click:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
     
-;     ; buffer pointer in rcx
-;     ; mouse x position in rdx
-;     ; mouse y position in r8
+    ; buffer pointer in rcx
+    ; mouse x position in rdx
+    ; mouse y position in r8
 
-;     ; bounds checks:
-;     cmp rdx, 0
-;     jl return
+    mov r10, scale
 
-;     cmp rdx, window_size
-;     jge return
-
-;     cmp r8, 0
-;     jl return
-
-;     cmp r8, window_size
-;     jge return
-
-;     imul r8d, window_size                                 ; r8d    = r8d * window_size
-;     add  r8,  rdx                                      ; r8d += mouse x position
-;     ; now contains the index of the pixel to be set.
-
-;     shl r8d, 2                                       ; multiply the index by 4, because it is an RBBA array
+    ; x = x / scale * scale;
+    mov rax, rdx
+    xor rdx, rdx ; the upper 64 bits of the dividend are 0
+    div r10 ; rdx gets modified! it now contains the remainder
+    imul r10
+    mov r9, rax
     
-;     mov byte [rcx + r8], 255                         ; set the red value to 255
+    ; y = y / scale * scale;
+    mov rax, r8
+    xor rdx, rdx
+    div r10
+    imul r10
+    mov r8, rax
 
-;     return:
-;     ; Function epilogue
-;     mov rax, 0                  ; Return 0
+    mov rdx, r9
 
-;     mov rsp, rbp ; Deallocate local variables
-;     pop rbp ; Restore the caller's base pointer value
-;     ret
+    ; save the parameters
+    push r8     ; y
+    push rdx    ; x
+    push rcx    ; buffer pointer
+
+
+    ; draw_square(draw_buffer, x, y);
+    call draw_square
+
+    ; registers may have been modified, so we restore them
+    mov rcx, [rsp]          ; buffer pointer
+    mov rdx, [rsp + 8]      ; x
+    mov r8, [rsp + 16]      ; y
+
+    sub rdx, scale
+
+    ; draw_square(draw_buffer, x-scale, y);
+    call draw_square
+
+    mov rcx, [rsp]          ; buffer pointer
+    mov rdx, [rsp + 8]      ; x
+    mov r8, [rsp + 16]      ; y
+
+    add rdx, scale
+
+    ; draw_square(draw_buffer, x+scale, y);
+    call draw_square
+
+    mov rcx, [rsp]          ; buffer pointer
+    mov rdx, [rsp + 8]      ; x
+    mov r8, [rsp + 16]      ; y
+
+    sub r8, scale
+
+    ; draw_square(draw_buffer, x, y-scale);
+    call draw_square
+
+    mov rcx, [rsp]          ; buffer pointer
+    mov rdx, [rsp + 8]      ; x
+    mov r8, [rsp + 16]      ; y
+
+    add r8, scale
+
+    ; draw_square(draw_buffer, x, y+scale);
+    call draw_square
+
+    ; Function epilogue
+    mov rax, 0                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
 
 ; ; ; void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer);
 ; ; ; in buffer is an rgba array of size window_x * window_y * 4

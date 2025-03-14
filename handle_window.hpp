@@ -19,7 +19,8 @@ extern "C" void clear_draw_region(uint8_t* buffer);
 extern "C" void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
 // void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
 
-void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
+extern "C" void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
+// void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 
 void load_digit_image(uint8_t* digits_buffer);
 

@@ -31,19 +31,19 @@
 //     }
 // }
 
-void update_on_mouse_click(uint8_t* draw_buffer, int x, int y){
+// void update_on_mouse_click(uint8_t* draw_buffer, int x, int y){
 
-    x = x / scale * scale;
-    y = y / scale * scale;
+//     x = x / scale * scale;
+//     y = y / scale * scale;
 
-    draw_square(draw_buffer, x, y);
+//     draw_square(draw_buffer, x, y);
 
-    draw_square(draw_buffer, x-scale, y);
-    draw_square(draw_buffer, x+scale, y);
+//     draw_square(draw_buffer, x-scale, y);
+//     draw_square(draw_buffer, x+scale, y);
 
-    draw_square(draw_buffer, x, y-scale);
-    draw_square(draw_buffer, x, y+scale);
-}
+//     draw_square(draw_buffer, x, y-scale);
+//     draw_square(draw_buffer, x, y+scale);
+// }
 
 void load_digit_image(uint8_t* digits_buffer){
     std::string input_path = "./digits_images/all_digits.data";
