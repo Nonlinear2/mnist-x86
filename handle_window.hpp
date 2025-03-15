@@ -24,6 +24,7 @@ extern "C" void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
 
 void load_digit_image(uint8_t* digits_buffer);
 
-void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
+extern "C" void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
+// void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
 
 void draw_circle_on_digits(uint8_t* digits_buffer, int x, int y, int r);

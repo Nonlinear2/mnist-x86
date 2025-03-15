@@ -3,6 +3,7 @@ global draw_square
 global clear_draw_region
 global get_draw_region_features
 global update_on_mouse_click
+global draw_pixel_on_digits
 
 extern printf
 
@@ -284,6 +285,48 @@ update_on_mouse_click:
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
+
+; void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
+draw_pixel_on_digits:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    
+    ; buffer pointer in rcx
+    ; mouse x position in rdx
+    ; mouse y position in r8
+    ; value in r9
+
+    ; bounds checks:
+    cmp rdx, 0
+    jl .return
+
+    cmp rdx, digits_image_x
+    jge .return
+
+    cmp r8, 0
+    jl .return
+
+    cmp r8, digits_image_y
+    jge .return
+
+    imul r8, digits_image_x
+    add r8, rdx
+    shl r8, 2           ; multiply by 4
+    
+    mov byte [rcx + r8], r9b
+
+    .return:
+    ; Function epilogue
+    mov rax, 0                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
+
+
 
 ; ; ; void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer);
 ; ; ; in buffer is an rgba array of size window_x * window_y * 4

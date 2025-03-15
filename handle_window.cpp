@@ -59,13 +59,13 @@ void load_digit_image(uint8_t* digits_buffer){
     image_stream.close();
 }
 
-// performs bound checks
-void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value){ // red for now
-    if (x < 0 || y < 0 || x >= digits_image_x || y >= digits_image_y)
-        return;
+// // performs bound checks
+// void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value){ // red for now
+//     if (x < 0 || y < 0 || x >= digits_image_x || y >= digits_image_y)
+//         return;
     
-    digits_buffer[4*(digits_image_x*y + x)] = value;
-}
+//     digits_buffer[4*(digits_image_x*y + x)] = value;
+// }
 
 void draw_circle_on_digits(uint8_t* digits_buffer, int center_x, int center_y, int r){
     // midpoint circle algorithm
