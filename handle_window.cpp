@@ -45,19 +45,19 @@
 //     draw_square(draw_buffer, x, y+scale);
 // }
 
-void load_digit_image(uint8_t* digits_buffer){
-    std::string input_path = "./digits_images/all_digits.data";
+// void load_digit_image(uint8_t* digits_buffer){
+//     std::string input_path = "./digits_images/all_digits.data";
     
-    std::ifstream image_stream;
-    image_stream.open(input_path, std::ios::binary);
-    if (image_stream.is_open())
-        image_stream.read(reinterpret_cast<char*>(digits_buffer),
-                            digits_image_x*digits_image_y*4*sizeof(uint8_t)); // * 4 is for rgba
-    else
-        std::cout << "error loading weights \n";
+//     std::ifstream image_stream;
+//     image_stream.open(input_path, std::ios::binary);
+//     if (image_stream.is_open())
+//         image_stream.read(reinterpret_cast<char*>(digits_buffer),
+//                             digits_image_x*digits_image_y*4*sizeof(uint8_t)); // * 4 is for rgba
+//     else
+//         std::cout << "error loading weights \n";
 
-    image_stream.close();
-}
+//     image_stream.close();
+// }
 
 // // performs bound checks
 // void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value){ // red for now

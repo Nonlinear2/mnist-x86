@@ -4,17 +4,18 @@ global clear_draw_region
 global get_draw_region_features
 global update_on_mouse_click
 global draw_pixel_on_digits
+global load_digit_image
 
 extern printf
 
 
 section .data
 message db 'value is %d', 10, 0                      ; 10 is newline, 0 is string terminator
-
+align 8
+digits_data: incbin "./digits_images/all_digits.data"
+digits_size equ $ - digits_data
 
 section .text
-
-
 ; window_y must be a multiple of 28
 %define window_x 650
 %define window_y 560
@@ -47,7 +48,7 @@ draw_pixel:
     mov byte [rcx + r8], r9b
 
     ; Function epilogue
-    mov rax, 0                  ; Return 0
+    xor rax, rax                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
@@ -104,7 +105,7 @@ draw_square:
 
     .return:
     ; Function epilogue
-    mov rax, 0                  ; Return 0
+    xor rax, rax                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
@@ -149,7 +150,7 @@ clear_draw_region:
     sub QWORD rcx, 3                                   ; restore the value of rcx
 
     ; Function epilogue
-    mov rax, 0                  ; Return 0
+    xor rax, rax                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
@@ -198,7 +199,7 @@ get_draw_region_features:
     jl .loop
 
     ; Function epilogue
-    mov rax, 0                  ; Return 0
+    xor rax, rax                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
@@ -280,7 +281,7 @@ update_on_mouse_click:
     call draw_square
 
     ; Function epilogue
-    mov rax, 0                  ; Return 0
+    xor rax, rax                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
@@ -319,14 +320,40 @@ draw_pixel_on_digits:
 
     .return:
     ; Function epilogue
-    mov rax, 0                  ; Return 0
+    xor rax, rax                  ; Return 0
 
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
 
+; void load_digit_image(uint8_t* digits_buffer);
+load_digit_image:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    
+    ; buffer pointer in rcx
 
+    push rdi            ; callee-saved
+    push rsi            ; callee-saved
 
+    lea rsi, [rel digits_data]      ; source
+    mov rdi, rcx                ; destination
+    mov rcx, digits_size
+
+    cld                 ; clear direction flag (ensure forward copy)
+    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+
+    pop rsi
+    pop rdi
+
+    ; Function epilogue
+    xor rax, rax                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
 
 ; ; ; void quantize_screen(uint8_t* in_buffer, uint8_t* out_buffer);
 ; ; ; in buffer is an rgba array of size window_x * window_y * 4
@@ -380,7 +407,7 @@ draw_pixel_on_digits:
         
 
 ; ;     ; Function epilogue
-; ;     mov rax, 0                  ; Return 0
+; ;     xor rax, rax                  ; Return 0
 
 ; ;     mov rsp, rbp ; Deallocate local variables
 ; ;     pop rbp ; Restore the caller's base pointer value
