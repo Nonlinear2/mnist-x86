@@ -28,4 +28,5 @@ extern "C" void load_digit_image(uint8_t* digits_buffer);
 extern "C" void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
 // void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
 
-void draw_circle_on_digits(uint8_t* digits_buffer, int x, int y, int r);
+extern "C" void draw_circle_on_digits(uint8_t* digits_buffer, int x, int y, int r);
+// void draw_circle_on_digits(uint8_t* digits_buffer, int x, int y, int r);

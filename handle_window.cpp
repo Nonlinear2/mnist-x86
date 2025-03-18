@@ -67,29 +67,29 @@
 //     digits_buffer[4*(digits_image_x*y + x)] = value;
 // }
 
-void draw_circle_on_digits(uint8_t* digits_buffer, int center_x, int center_y, int r){
-    // midpoint circle algorithm
-    int x = 0;
-    int y = -r;
-    int p = -r;
+// void draw_circle_on_digits(uint8_t* digits_buffer, int center_x, int center_y, int r){
+//     // midpoint circle algorithm
+//     int x = 0;
+//     int y = -r;
+//     int p = -r;
 
-    while (x < -y){
-        if (p > 0){
-            y += 1;
-            p += 2*(x + y) + 1;
-        } else {
-            p += 2*x + 1;
-        }
+//     while (x < -y){
+//         if (p > 0){
+//             y += 1;
+//             p += 2*(x + y) + 1;
+//         } else {
+//             p += 2*x + 1;
+//         }
 
-        draw_pixel_on_digits(digits_buffer, center_x + x, center_y + y, 255);
-        draw_pixel_on_digits(digits_buffer, center_x - x, center_y + y, 255);
-        draw_pixel_on_digits(digits_buffer, center_x + x, center_y - y, 255);
-        draw_pixel_on_digits(digits_buffer, center_x - x, center_y - y, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x + x, center_y + y, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x - x, center_y + y, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x + x, center_y - y, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x - x, center_y - y, 255);
 
-        draw_pixel_on_digits(digits_buffer, center_x + y, center_y + x, 255);
-        draw_pixel_on_digits(digits_buffer, center_x + y, center_y - x, 255);
-        draw_pixel_on_digits(digits_buffer, center_x - y, center_y + x, 255);
-        draw_pixel_on_digits(digits_buffer, center_x - y, center_y - x, 255);
-        x += 1;
-    }
-}
+//         draw_pixel_on_digits(digits_buffer, center_x + y, center_y + x, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x + y, center_y - x, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x - y, center_y + x, 255);
+//         draw_pixel_on_digits(digits_buffer, center_x - y, center_y - x, 255);
+//         x += 1;
+//     }
+// }
