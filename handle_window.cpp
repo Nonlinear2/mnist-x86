@@ -1,4 +1,4 @@
-#include "handle_window.hpp"
+// #include "handle_window.hpp"
 
 // void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value){
 //     draw_buffer[4*(draw_region_size*y + x)] = value;
