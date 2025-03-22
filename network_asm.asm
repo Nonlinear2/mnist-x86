@@ -1,3 +1,4 @@
+global run_network
 
 section .data
 
@@ -42,8 +43,8 @@ run_network:
     .loop:
 
      ; copy bias
-    mov r9d, DWORD PTR [r8 + 4*rax]  
-    mov DWORD PTR [r10 + 4*rax], r9d
+    mov r9d, DWORD [r8 + 4*rax]  
+    mov DWORD [r10 + 4*rax], r9d
 
     xor r11, r11
     .inner_loop:
@@ -52,10 +53,10 @@ run_network:
     mov r9d, input_size
     imul r9d, eax
     add r9d, r11d
-    mov r9d, DWORD PTR [rdx + 4*r9]
-    imul r9d, BYTE PTR [rcx + r11]
+    mov r9d, DWORD [rdx + 4*r9]
+    imul r9d, BYTE [rcx + r11]
 
-    add DWORD PTR [r10 + 4*rax], r9d
+    add DWORD [r10 + 4*rax], r9d
 
     inc r11
     cmp r11, input_size
@@ -69,13 +70,13 @@ run_network:
     xor rax, rax
     .loop2:
     ; apply relu
-    cmp [r10 + rax*4], 0
-    jge .else:
-    mov [r10 + rax*4], 0
+    cmp [r10 + rax*4], QWORD 0
+    jge .else
+    mov [r10 + rax*4], QWORD 0
     jmp .endif
     .else:
     ; divide by 256
-    sar [r10 + rax*4], 8
+    sar QWORD [r10 + rax*4], 8
     .endif:
     inc rax
     cmp rax, dense1_size
@@ -92,8 +93,8 @@ run_network:
     .loop3:
 
      ; copy bias
-    mov r9d, DWORD PTR [r8 + 4*rax]
-    mov DWORD PTR [r10 + 4*rax], r9d
+    mov r9d, DWORD [r8 + 4*rax]
+    mov DWORD [r10 + 4*rax], r9d
 
     xor r11, r11
     .inner_loop2:
@@ -102,10 +103,10 @@ run_network:
     mov r9d, dense1_size
     imul r9d, eax
     add r9d, r11d
-    mov r9d, DWORD PTR [rdx + 4*r9]
-    imul r9d, BYTE PTR [rcx + r11]
+    mov r9d, DWORD [rdx + 4*r9]
+    imul r9d, BYTE [rcx + r11]
 
-    add DWORD PTR [r10 + 4*rax], r9d
+    add DWORD [r10 + 4*rax], r9d
 
     inc r11
     cmp r11, dense1_size
