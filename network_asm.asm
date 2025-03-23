@@ -21,7 +21,7 @@ run_network:
     push    rbp
     mov     rbp, rsp
     ; Reserve 32 bytes of shadow space + sizeof(int)*dense1_size + sizeof(layer_1_output)
-    %define reserved_space dense1_size + 32 + 8
+    %define reserved_space dense1_byte_size + 32 + 8
     sub     rsp, reserved_space                                 
 
 
@@ -80,13 +80,13 @@ run_network:
     xor rax, rax
     .loop2:
     ; apply relu
-    cmp QWORD [r10 + rax*4], QWORD 0
+    cmp DWORD [r10 + rax*4], DWORD 0
     jge .else
-    mov QWORD [r10 + rax*4], QWORD 0
+    mov DWORD [r10 + rax*4], DWORD 0
     jmp .endif
     .else:
     ; divide by 256
-    sar QWORD [r10 + rax*4], 8
+    sar DWORD [r10 + rax*4], 8
     .endif:
     inc rax
     cmp rax, dense1_size
@@ -110,11 +110,11 @@ run_network:
     .inner_loop2:
 
     ; output_buffer[row] += dense2_weights[row*dense1_size + i] * layer1_output[i]; 
-    mov r9d, dense1_size
-    imul r9d, eax
-    add r9d, r11d
+    mov r9, QWORD dense1_size
+    imul r9, rax
+    add r9, r11
     mov r9d, DWORD [rdx + 4*r9]
-    imul r9d, [rcx + r11]
+    imul r9d, [rcx + 4*r11]
 
     add DWORD [r10 + 4*rax], r9d
 

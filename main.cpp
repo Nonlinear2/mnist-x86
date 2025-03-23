@@ -34,6 +34,16 @@ int main(){
     load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
     int output_buffer[dense2_size] = {};
 
+
+    update_on_mouse_click(buffer, 10, 10);
+
+    texture.update(buffer);
+    sprite.setTexture(texture);
+
+    get_draw_region_features(buffer, mnist_buffer);
+
+    run_network(mnist_buffer, dense1_weights, dense1_bias, dense2_weights, dense2_bias, output_buffer);
+
     while (window.isOpen()){
         while (const std::optional event = window.pollEvent()){
             if (event->is<sf::Event::Closed>())
