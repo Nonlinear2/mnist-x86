@@ -93,16 +93,41 @@ run_network:
     jl .loop2
 
 
+
+    ; ┌─────────────┐                    
+    ; │top of stack │◄──── rsp   ▲       
+    ; ├─────────────┤            │       
+    ; │    ....     │            │       
+    ; ├─────────────┤            │stack  
+    ; │  saved rbp  │◄──── rbp   │growth
+    ; ├─────────────┤            │       
+    ; │return adress│            │       
+    ; ├─────────────┤            │       
+    ; │   rcx home  │                    
+    ; ├─────────────┤                    
+    ; │   rdx home  │                    
+    ; ├─────────────┤                    
+    ; │   r8 home   │                    
+    ; ├─────────────┤            │       
+    ; │   r9 home   │ rbp+40     │       
+    ; ├─────────────┤            │ high  
+    ; │ parameter 1 │ rbp+48     │ adress
+    ; ├─────────────┤            │       
+    ; │ parameter 2 │            │       
+    ; ├─────────────┤            │       
+    ; │    ....     │            ▼       
+    ; └─────────────┘                    
+
     ; layer 2
     mov rcx, layer1_output
     pop rdx                        ; rdx now contains dense2_weights
-    mov r8, [rbp + 8]              ; r8 now contains dense2_bias
-    mov r10, [rbp + 16]            ; r10 now contains output_buffer
+    mov r8, [rbp + 48]             ; r8 now contains dense2_bias
+    mov r10, [rbp + 56]            ; r10 now contains output_buffer
 
     xor rax, rax
     .loop3:
 
-     ; copy bias
+    ; copy bias
     mov r9d, DWORD [r8 + 4*rax]
     mov DWORD [r10 + 4*rax], r9d
 
