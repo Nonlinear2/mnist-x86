@@ -1,16 +1,89 @@
 global run_network
+global load_weights
 
 section .data
+align 8
+stored_dense1_weights: incbin "./mnist_simple_layers/layer_1/weights.bin"
+stored_dense1_bias: incbin "./mnist_simple_layers/layer_1/bias.bin"
+stored_dense2_weights: incbin "./mnist_simple_layers/layer_2/weights.bin"
+stored_dense2_bias: incbin "./mnist_simple_layers/layer_2/bias.bin"
+
 
 section .text
 
+%define mnist_size                      28
+%define input_size                      mnist_size*mnist_size
 
-%define mnist_size 28
-%define input_size mnist_size*mnist_size
+%define dense1_size                     128
+%define dense1_byte_size                4*dense1_size
+%define dense2_size                     10
+%define dense2_byte_size                4*dense2_size
 
-%define dense1_size 128
-%define dense1_byte_size 4*dense1_size
-%define dense2_size 10
+%define dense1_weights_byte_size        input_size*dense1_size*4
+%define dense2_weights_byte_size        dense1_size*dense2_size*4
+
+
+; void load_weights(int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias);
+load_weights:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    
+    ; dense1_weights in rcx
+    ; dense1_bias in rdx
+    ; dense2_weights in r8
+    ; dense2_bias in r9
+
+    push rdi            ; callee-saved
+    push rsi            ; callee-saved
+
+
+    ; dense1 weights
+    lea rsi, [rel stored_dense1_weights]       ; source
+    mov rdi, rcx                               ; destination
+    mov rcx, dense1_weights_byte_size
+
+    cld                 ; clear direction flag (ensure forward copy)
+    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+
+
+    ; dense1 bias
+    lea rsi, [rel stored_dense1_bias]          ; source
+    mov rdi, rdx                               ; destination
+    mov rcx, dense1_byte_size
+
+    cld                 ; clear direction flag (ensure forward copy)
+    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+
+
+    ; dense2 weights
+    lea rsi, [rel stored_dense2_weights]              ; source
+    mov rdi, r8                                       ; destination
+    mov rcx, dense2_weights_byte_size
+
+    cld                 ; clear direction flag (ensure forward copy)
+    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+
+
+    ; dense2 bias
+    lea rsi, [rel stored_dense2_bias]                 ; source
+    mov rdi, r9                                       ; destination
+    mov rcx, dense2_byte_size
+
+    cld                 ; clear direction flag (ensure forward copy)
+    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+
+    pop rsi
+    pop rdi
+
+    ; Function epilogue
+    xor rax, rax                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
 
 ; void run_network(uint8_t* input_buffer,
 ;                  int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias,
