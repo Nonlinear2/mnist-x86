@@ -18,17 +18,13 @@ digits_size equ $ - digits_data
 
 section .text
 ; window_y must be a multiple of 28
-%define window_x 650
-%define window_y 560
-
-%define mnist_size 28
-
-%define draw_region_size window_y
-
-%define scale window_y / mnist_size
-
-%define digits_image_x 50
-%define digits_image_y 560
+%define window_x                    650
+%define window_y                    560
+%define mnist_size                  28
+%define draw_region_size            window_y
+%define scale                       window_y / mnist_size
+%define digits_image_x              50
+%define digits_image_y              560
 
 ; void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value)
 draw_pixel:
