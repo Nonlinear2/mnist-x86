@@ -148,7 +148,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
                     }
                 }
 
-                draw_circle_on_digits(digits_buffer.pixels, 25, 24 + val*DIGITS_IMAGE_Y/10, 20);
+                draw_circle_on_digits(digits_buffer.pixels, 24, 24 + val*57, 20);
                 InvalidateRect(window_handle, NULL, FALSE);
             }
             break;
