@@ -9,7 +9,7 @@ struct Buffer {
     int width;
     int height;
     uint32_t* pixels;
-    BITMAPINFO bitmap_info;
+    BITMAPINFO bitmap_info = {};
     HBITMAP bitmap = 0;
     HDC frame_device_context = 0;
 };
@@ -17,10 +17,13 @@ struct Buffer {
 LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 
 struct Buffer draw_buffer;
+uint32_t* draw_buffer_pixels = new uint32_t[WINDOW_Y * WINDOW_Y];
 struct Buffer mnist_buffer;
+uint32_t mnist_buffer_pixels[MNIST_SIZE * MNIST_SIZE];
 struct Buffer digits_buffer;
+uint32_t digits_buffer_pixels[DIGITS_IMAGE_X * DIGITS_IMAGE_Y];
 
-uint32_t saved_digits_buffer[DIGITS_IMAGE_X*DIGITS_IMAGE_Y] = {};
+uint32_t saved_digits_buffer[DIGITS_IMAGE_X * DIGITS_IMAGE_Y] = {};
 
 int dense1_weights[INPUT_SIZE*DENSE1_SIZE] = {};
 int dense1_bias[DENSE1_SIZE] = {};
@@ -43,11 +46,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     draw_buffer.width = draw_buffer.height = WINDOW_Y;
     draw_buffer.pixels = new uint32_t[WINDOW_Y * WINDOW_Y];
 
-    uint32_t mnist_buffer_pixels[MNIST_SIZE * MNIST_SIZE];
-    mnist_buffer = {MNIST_SIZE, MNIST_SIZE, mnist_buffer_pixels};
+    mnist_buffer.width = mnist_buffer.height = MNIST_SIZE;
+    mnist_buffer.pixels = mnist_buffer_pixels;
 
-    uint32_t digits_buffer_pixels[MNIST_SIZE * MNIST_SIZE];
-    digits_buffer = {DIGITS_IMAGE_X, DIGITS_IMAGE_Y, digits_buffer_pixels};
+    digits_buffer.width = DIGITS_IMAGE_X;
+    digits_buffer.height = DIGITS_IMAGE_Y;
+    digits_buffer.pixels = digits_buffer_pixels;
 
     load_digit_image((uint8_t*)digits_buffer_pixels);
     load_digit_image((uint8_t*)saved_digits_buffer);
@@ -71,7 +75,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     static HWND window_handle = CreateWindow(
         window_class_name,
         L"Drawing Pixels",
-        (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~WS_THICKFRAME),
+        (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX)),
         640, 300, WINDOW_X, WINDOW_Y,
         NULL, NULL, hInstance, NULL
     );
@@ -93,7 +97,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
     switch(message) {
         case WM_QUIT:
         case WM_DESTROY:
-            delete[] draw_buffer.pixels;
+            delete[] draw_buffer_pixels;
             quit = true;
             break;
         
