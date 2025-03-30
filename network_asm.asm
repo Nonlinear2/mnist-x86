@@ -14,7 +14,7 @@ section .text
 %define MNIST_SIZE                      28
 %define INPUT_SIZE                      MNIST_SIZE*MNIST_SIZE
 
-%define dense1_size                     128
+%define DENSE1_SIZE                     128
 %define DENSE1_BYTE_SIZE                4*DENSE1_SIZE
 %define DENSE2_SIZE                     10
 %define DENSE2_BYTE_SIZE                4*DENSE2_SIZE
@@ -94,7 +94,7 @@ run_network:
     push    rbp
     mov     rbp, rsp
     ; Reserve 32 bytes of shadow space + sizeof(int)*DENSE1_SIZE + sizeof(layer_1_output)
-    %define reserved_space DENSE1_BYTE_SIZE + 32 + 8
+    %define reserved_space  DENSE1_BYTE_SIZE + 32 + 8
     sub     rsp, reserved_space                                 
 
 
