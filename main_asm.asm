@@ -17,8 +17,8 @@ global main
 %define WINDOW_X                    650
 %define WINDOW_Y                    560
 %define MNIST_SIZE                  28
-%define DRAW_REGION_SIZE            window_y
-%define SCALE                       window_y / mnist_size
+%define DRAW_REGION_SIZE            WINDOW_Y
+%define SCALE                       WINDOW_Y / MNIST_SIZE
 %define DIGITS_IMAGE_X              50
 %define DIGITS_IMAGE_Y              560
 
