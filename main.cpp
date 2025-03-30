@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     assert(WINDOW_Y % MNIST_SIZE == 0);
 
     draw_buffer.width = draw_buffer.height = WINDOW_Y;
-    draw_buffer.pixels = new uint32_t[WINDOW_Y * WINDOW_Y];
+    draw_buffer.pixels = draw_buffer_pixels;
 
     mnist_buffer.width = mnist_buffer.height = MNIST_SIZE;
     mnist_buffer.pixels = mnist_buffer_pixels;
@@ -58,12 +58,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
     // set alpha values to 255
     for (int i = 0; i < WINDOW_Y * WINDOW_Y; i++){
-        draw_buffer.pixels[i] = 0xFF0000FF;
+        draw_buffer.pixels[i] = 0xFFFF00FF;
     }
     
     load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
 
     draw_buffer.bitmap_info.bmiHeader.biSize = sizeof(draw_buffer.bitmap_info.bmiHeader);
+    draw_buffer.bitmap_info.bmiHeader.biWidth = WINDOW_Y;
+    draw_buffer.bitmap_info.bmiHeader.biHeight = -WINDOW_Y;
     draw_buffer.bitmap_info.bmiHeader.biPlanes = 1;
     draw_buffer.bitmap_info.bmiHeader.biBitCount = 32;
     draw_buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
@@ -72,11 +74,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     draw_buffer.bitmap = CreateDIBSection(NULL, &draw_buffer.bitmap_info, DIB_RGB_COLORS, (void**)&draw_buffer.pixels, 0, 0);
     SelectObject(draw_buffer.frame_device_context, draw_buffer.bitmap);
 
+    RECT window_rect = {0, 0, WINDOW_X, WINDOW_Y};
+    AdjustWindowRect(&window_rect, WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX)), FALSE);
+
     static HWND window_handle = CreateWindow(
         window_class_name,
         L"Drawing Pixels",
         (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX)),
-        640, 300, WINDOW_X, WINDOW_Y,
+        640, 300, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top,
         NULL, NULL, hInstance, NULL
     );
 
