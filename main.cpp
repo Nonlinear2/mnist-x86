@@ -87,7 +87,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         640, 300, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top,
         NULL, NULL, hInstance, NULL
     );
-    
+
+    SetCursor(LoadCursor(NULL, IDC_ARROW));
+
     if(window_handle == NULL)
         return -1;
 
@@ -111,6 +113,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
 
         case WM_LBUTTONDOWN:
             lmb_down = true;
+            SetCapture(window_handle);
         case WM_MOUSEMOVE:
             if (lmb_down){
                 update_on_mouse_click(draw_buffer.pixels, LOWORD(lParam), HIWORD(lParam));
@@ -122,6 +125,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
 
         case WM_LBUTTONUP:
             lmb_down = false;
+            ReleaseCapture();
             break;
 
         case WM_RBUTTONDOWN:
@@ -153,6 +157,11 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
             }
             break;
         
+        case WM_CAPTURECHANGED:
+            if (lmb_down)
+                lmb_down = false;
+            break;
+
         case WM_PAINT:
             device_context = BeginPaint(window_handle, &paint);
 
