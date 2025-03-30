@@ -5,25 +5,22 @@
 
 static bool quit = false;
 
-typedef struct {
+struct Buffer {
     int width;
     int height;
     uint32_t* pixels;
     BITMAPINFO bitmap_info;
     HBITMAP bitmap = 0;
-} Buffer;
+    HDC frame_device_context = 0;
+};
 
 LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 
-static HDC frame_device_context = 0;
+struct Buffer draw_buffer;
+struct Buffer mnist_buffer;
+struct Buffer digits_buffer;
 
-Buffer draw_buffer;
-Buffer mnist_buffer;
-Buffer digits_buffer;
-
-uint8_t digits_buffer[digits_image_x*digits_image_y*4] = {};
-
-uint8_t saved_digits_buffer[digits_image_x*digits_image_y*4] = {};
+uint32_t saved_digits_buffer[digits_image_x*digits_image_y] = {};
 
 int dense1_weights[input_size*dense1_size] = {};
 int dense1_bias[dense1_size] = {};
@@ -40,15 +37,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     window_class.lpszClassName = window_class_name;
     RegisterClass(&window_class);
     
-    draw_buffer.bitmap_info.bmiHeader.biSize = sizeof(draw_buffer.bitmap_info.bmiHeader);
-    draw_buffer.bitmap_info.bmiHeader.biPlanes = 1;
-    draw_buffer.bitmap_info.bmiHeader.biBitCount = 32;
-    draw_buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
-    frame_device_context = CreateCompatibleDC(0);
     
-    draw_buffer.bitmap = CreateDIBSection(NULL, &draw_buffer.bitmap_info, DIB_RGB_COLORS, (void**)&draw_buffer.pixels, 0, 0);
-    SelectObject(frame_device_context, draw_buffer.bitmap);
-
     assert(window_y % mnist_size == 0);
 
     draw_buffer.width = draw_buffer.height = window_y;
@@ -61,14 +50,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     digits_buffer = {digits_image_x, digits_image_y, digits_buffer_pixels};
 
     load_digit_image((uint8_t*)digits_buffer_pixels);
-    load_digit_image(saved_digits_buffer);
+    load_digit_image((uint8_t*)saved_digits_buffer);
 
     // set alpha values to 255
     for (int i = 0; i < window_y * window_y; i++){
-        draw_buffer.pixels[i] = 0x000000FF;
+        draw_buffer.pixels[i] = 0xFF0000FF;
     }
     
     load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
+
+    draw_buffer.bitmap_info.bmiHeader.biSize = sizeof(draw_buffer.bitmap_info.bmiHeader);
+    draw_buffer.bitmap_info.bmiHeader.biPlanes = 1;
+    draw_buffer.bitmap_info.bmiHeader.biBitCount = 32;
+    draw_buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
+    draw_buffer.frame_device_context = CreateCompatibleDC(0);
+    
+    draw_buffer.bitmap = CreateDIBSection(NULL, &draw_buffer.bitmap_info, DIB_RGB_COLORS, (void**)&draw_buffer.pixels, 0, 0);
+    SelectObject(draw_buffer.frame_device_context, draw_buffer.bitmap);
 
     static HWND window_handle = CreateWindow(
         window_class_name,
@@ -103,18 +101,15 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
             static PAINTSTRUCT paint;
             static HDC device_context;
             device_context = BeginPaint(window_handle, &paint);
-            BitBlt(device_context,
-                paint.rcPaint.left, paint.rcPaint.top,
-                paint.rcPaint.right - paint.rcPaint.left, paint.rcPaint.bottom - paint.rcPaint.top,
-                frame_device_context,
-                paint.rcPaint.left, paint.rcPaint.top,
-                SRCCOPY);
-                EndPaint(window_handle, &paint);
+
+            BitBlt(device_context, 0, 0, window_y, window_y, draw_buffer.frame_device_context, 0, 0, SRCCOPY);
+
+            EndPaint(window_handle, &paint);
             break;
         default:
             return DefWindowProc(window_handle, message, wParam, lParam);
-        return 0;
     }
+    return 0;
 }
 
 // if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)){
