@@ -1,38 +1,38 @@
 #include "main.hpp"
 
 int main(){
-    assert(window_y % mnist_size == 0);
-    sf::RenderWindow window(sf::VideoMode(sf::Vector2u(window_x, window_y)), "MNIST x86");
-    uint8_t* buffer = new uint8_t[window_y * window_y * 4];
-    uint8_t mnist_buffer[mnist_size*mnist_size] = {};
+    assert(WINDOW_Y % MNIST_SIZE == 0);
+    sf::RenderWindow window(sf::VideoMode(sf::Vector2u(WINDOW_X, WINDOW_Y)), "MNIST x86");
+    uint8_t* buffer = new uint8_t[WINDOW_Y * WINDOW_Y * 4];
+    uint8_t mnist_buffer[MNIST_SIZE*MNIST_SIZE] = {};
 
-    uint8_t digits_buffer[digits_image_x*digits_image_y*4] = {};
+    uint8_t digits_buffer[DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4] = {};
     load_digit_image(digits_buffer);
 
-    uint8_t saved_digits_buffer[digits_image_x*digits_image_y*4] = {};
+    uint8_t saved_digits_buffer[DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4] = {};
     load_digit_image(saved_digits_buffer);
 
     // set alpha values to 255
-    for (int i = 0; i < window_y * window_y; i++){
+    for (int i = 0; i < WINDOW_Y * WINDOW_Y; i++){
         buffer[i*4+3] = 255;
     }
 
-    sf::Texture texture(sf::Vector2u(window_y, window_y));
+    sf::Texture texture(sf::Vector2u(WINDOW_Y, WINDOW_Y));
     texture.update(buffer);
     sf::Sprite sprite(texture);
 
-    sf::Texture digits_texture(sf::Vector2u(digits_image_x, digits_image_y));
+    sf::Texture digits_texture(sf::Vector2u(DIGITS_IMAGE_X, DIGITS_IMAGE_Y));
     digits_texture.update(digits_buffer);
     sf::Sprite digits_sprite(digits_texture);
-    digits_sprite.setPosition(sf::Vector2f(window_y + 10, 0));
+    digits_sprite.setPosition(sf::Vector2f(WINDOW_Y + 10, 0));
 
-    int dense1_weights[input_size*dense1_size] = {};
-    int dense1_bias[dense1_size] = {};
-    int dense2_weights[dense1_size*dense2_size] = {};
-    int dense2_bias[dense2_size] = {};
+    int dense1_weights[INPUT_SIZE*DENSE1_SIZE] = {};
+    int dense1_bias[DENSE1_SIZE] = {};
+    int dense2_weights[DENSE1_SIZE*DENSE2_SIZE] = {};
+    int dense2_bias[DENSE2_SIZE] = {};
 
     load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
-    int output_buffer[dense2_size] = {};
+    int output_buffer[DENSE2_SIZE] = {};
 
 
     update_on_mouse_click(buffer, 10, 10);
@@ -71,7 +71,7 @@ int main(){
 
             int max = -10000000;
             int val = 0;
-            for (int i = 0; i < dense2_size; i++){
+            for (int i = 0; i < DENSE2_SIZE; i++){
                 if (output_buffer[i]/256 > max){
                     max = output_buffer[i]/256;
                     val = i;
@@ -80,11 +80,11 @@ int main(){
 
             std::cout << "number is: " << val << std::endl;
 
-            for (int i = 0; i < digits_image_x*digits_image_y*4; i++){
+            for (int i = 0; i < DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4; i++){
                 digits_buffer[i] = saved_digits_buffer[i];
             }
 
-            draw_circle_on_digits(digits_buffer, 25, 24 + val*digits_image_y/10, 20);
+            draw_circle_on_digits(digits_buffer, 25, 24 + val*DIGITS_IMAGE_Y/10, 20);
             digits_texture.update(digits_buffer);
             digits_sprite.setTexture(digits_texture);
         }

@@ -20,14 +20,14 @@ struct Buffer draw_buffer;
 struct Buffer mnist_buffer;
 struct Buffer digits_buffer;
 
-uint32_t saved_digits_buffer[digits_image_x*digits_image_y] = {};
+uint32_t saved_digits_buffer[DIGITS_IMAGE_X*DIGITS_IMAGE_Y] = {};
 
-int dense1_weights[input_size*dense1_size] = {};
-int dense1_bias[dense1_size] = {};
-int dense2_weights[dense1_size*dense2_size] = {};
-int dense2_bias[dense2_size] = {};
+int dense1_weights[INPUT_SIZE*DENSE1_SIZE] = {};
+int dense1_bias[DENSE1_SIZE] = {};
+int dense2_weights[DENSE1_SIZE*DENSE2_SIZE] = {};
+int dense2_bias[DENSE2_SIZE] = {};
 
-int output_buffer[dense2_size] = {};
+int output_buffer[DENSE2_SIZE] = {};
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
     const wchar_t window_class_name[] = L"MNIST-x86";
@@ -38,22 +38,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     RegisterClass(&window_class);
     
     
-    assert(window_y % mnist_size == 0);
+    assert(WINDOW_Y % MNIST_SIZE == 0);
 
-    draw_buffer.width = draw_buffer.height = window_y;
-    draw_buffer.pixels = new uint32_t[window_y * window_y];
+    draw_buffer.width = draw_buffer.height = WINDOW_Y;
+    draw_buffer.pixels = new uint32_t[WINDOW_Y * WINDOW_Y];
 
-    uint32_t mnist_buffer_pixels[mnist_size * mnist_size];
-    mnist_buffer = {mnist_size, mnist_size, mnist_buffer_pixels};
+    uint32_t mnist_buffer_pixels[MNIST_SIZE * MNIST_SIZE];
+    mnist_buffer = {MNIST_SIZE, MNIST_SIZE, mnist_buffer_pixels};
 
-    uint32_t digits_buffer_pixels[mnist_size * mnist_size];
-    digits_buffer = {digits_image_x, digits_image_y, digits_buffer_pixels};
+    uint32_t digits_buffer_pixels[MNIST_SIZE * MNIST_SIZE];
+    digits_buffer = {DIGITS_IMAGE_X, DIGITS_IMAGE_Y, digits_buffer_pixels};
 
     load_digit_image((uint8_t*)digits_buffer_pixels);
     load_digit_image((uint8_t*)saved_digits_buffer);
 
     // set alpha values to 255
-    for (int i = 0; i < window_y * window_y; i++){
+    for (int i = 0; i < WINDOW_Y * WINDOW_Y; i++){
         draw_buffer.pixels[i] = 0xFF0000FF;
     }
     
@@ -72,7 +72,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         window_class_name,
         L"Drawing Pixels",
         (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~WS_THICKFRAME),
-        640, 300, 640, 480,
+        640, 300, WINDOW_X, WINDOW_Y,
         NULL, NULL, hInstance, NULL
     );
 
@@ -102,7 +102,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
             static HDC device_context;
             device_context = BeginPaint(window_handle, &paint);
 
-            BitBlt(device_context, 0, 0, window_y, window_y, draw_buffer.frame_device_context, 0, 0, SRCCOPY);
+            BitBlt(device_context, 0, 0, WINDOW_Y, WINDOW_Y, draw_buffer.frame_device_context, 0, 0, SRCCOPY);
 
             EndPaint(window_handle, &paint);
             break;
@@ -134,7 +134,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
     
 //     int max = -10000000;
 //     int val = 0;
-//     for (int i = 0; i < dense2_size; i++){
+//     for (int i = 0; i < DENSE2_SIZE; i++){
 //         if (output_buffer[i]/256 > max){
 //             max = output_buffer[i]/256;
 //             val = i;
@@ -143,11 +143,11 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
     
 //     std::cout << "number is: " << val << std::endl;
     
-//     for (int i = 0; i < digits_image_x*digits_image_y*4; i++){
+//     for (int i = 0; i < DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4; i++){
 //         digits_buffer[i] = saved_digits_buffer[i];
 //     }
     
-//     draw_circle_on_digits(digits_buffer, 25, 24 + val*digits_image_y/10, 20);
+//     draw_circle_on_digits(digits_buffer, 25, 24 + val*DIGITS_IMAGE_Y/10, 20);
 //     digits_texture.update(digits_buffer);
 //     digits_sprite.setTexture(digits_texture);
 // }
