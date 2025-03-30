@@ -17,14 +17,14 @@ digits_data: incbin "./digits_images/all_digits.data"
 digits_size equ $ - digits_data
 
 section .text
-; window_y must be a multiple of 28
-%define window_x                    650
-%define window_y                    560
-%define mnist_size                  28
-%define draw_region_size            window_y
-%define scale                       window_y / mnist_size
-%define digits_image_x              50
-%define digits_image_y              560
+; WINDOW_Y must be a multiple of 28
+%define WINDOW_X                    650
+%define WINDOW_Y                    560
+%define MNIST_SIZE                  28
+%define DRAW_REGION_SIZE            WINDOW_Y
+%define SCALE                       WINDOW_Y / MNIST_SIZE
+%define DIGITS_IMAGE_X              50
+%define DIGITS_IMAGE_Y              560
 
 ; void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value)
 draw_pixel:
@@ -38,8 +38,8 @@ draw_pixel:
     ; mouse y position in r8
     ; value in r9
 
-    ; draw_buffer[4*(draw_region_size*y + x)] = value;
-    imul r8, draw_region_size
+    ; draw_buffer[4*(DRAW_REGION_SIZE*y + x)] = value;
+    imul r8, DRAW_REGION_SIZE
     add r8, rdx
     shl r8, 2                   ; multiply by 4
     mov byte [rcx + r8], r9b
@@ -67,13 +67,13 @@ draw_square:
     cmp rdx, 0
     jl .return
 
-    cmp rdx, draw_region_size
+    cmp rdx, DRAW_REGION_SIZE
     jge .return
 
     cmp r8, 0
     jl .return
 
-    cmp r8, draw_region_size
+    cmp r8, DRAW_REGION_SIZE
     jge .return
 
     ; nested loop to draw a square
@@ -83,21 +83,21 @@ draw_square:
     xor r10, r10                                       ; set r10 to 0
     .inner_loop:
 
-    ; draw_buffer[((y + j) * draw_region_size + (x + i)) * 4] = 255;
+    ; draw_buffer[((y + j) * DRAW_REGION_SIZE + (x + i)) * 4] = 255;
     mov r9, r8
     add r9, r10
-    imul r9, draw_region_size
+    imul r9, DRAW_REGION_SIZE
     add r9, rdx
     add r9, rax
     shl r9, 2       ; multiply by 4
     mov byte [rcx + r9], 255
 
     inc r10
-    cmp r10, scale
+    cmp r10, SCALE
     jl .inner_loop
 
     inc rax
-    cmp rax, scale
+    cmp rax, SCALE
     jl .loop
 
     .return:
@@ -118,8 +118,8 @@ clear_draw_region:
     
     ; buffer pointer in rcx
 
-    mov QWORD rax, draw_region_size
-    imul rax, draw_region_size
+    mov QWORD rax, DRAW_REGION_SIZE
+    imul rax, DRAW_REGION_SIZE
     ; rax now has the size of the window
 
     shl rax, 2                                         ; multiply the index by 4, because it is an RBBA array
@@ -171,28 +171,28 @@ get_draw_region_features:
     xor r10, r10                                       ; set r10 to 0
     .inner_loop:
 
-    ; out_buffer[y * mnist_size + x] = draw_buffer[(y * scale * draw_region_size + x * scale) * 4];
+    ; out_buffer[y * MNIST_SIZE + x] = draw_buffer[(y * SCALE * DRAW_REGION_SIZE + x * SCALE) * 4];
     mov r8, rax
-    imul r8, scale
-    imul r8, draw_region_size
+    imul r8, SCALE
+    imul r8, DRAW_REGION_SIZE
     mov r9, r10
-    imul r9, scale
+    imul r9, SCALE
     add r8, r9
     shl r8, 2                   ; multiply by 4
 
     mov r9, rax
-    imul r9, mnist_size
+    imul r9, MNIST_SIZE
     add r9, r10
 
     mov r8b, byte [rcx + r8]
     mov byte [rdx + r9], r8b
 
     inc r10
-    cmp r10, scale
+    cmp r10, SCALE
     jl .inner_loop
 
     inc rax
-    cmp rax, scale
+    cmp rax, SCALE
     jl .loop
 
     ; Function epilogue
@@ -213,16 +213,16 @@ update_on_mouse_click:
     ; mouse x position in rdx
     ; mouse y position in r8
 
-    mov r10, scale
+    mov r10, SCALE
 
-    ; x = x / scale * scale;
+    ; x = x / SCALE * SCALE;
     mov rax, rdx
     xor rdx, rdx ; the upper 64 bits of the dividend are 0
     div r10 ; rdx gets modified! it now contains the remainder
     imul r10
     mov r9, rax
     
-    ; y = y / scale * scale;
+    ; y = y / SCALE * SCALE;
     mov rax, r8
     xor rdx, rdx
     div r10
@@ -245,36 +245,36 @@ update_on_mouse_click:
     mov rdx, [rsp + 8]      ; x
     mov r8, [rsp + 16]      ; y
 
-    sub rdx, scale
+    sub rdx, SCALE
 
-    ; draw_square(draw_buffer, x-scale, y);
+    ; draw_square(draw_buffer, x-SCALE, y);
     call draw_square
 
     mov rcx, [rsp]          ; buffer pointer
     mov rdx, [rsp + 8]      ; x
     mov r8, [rsp + 16]      ; y
 
-    add rdx, scale
+    add rdx, SCALE
 
-    ; draw_square(draw_buffer, x+scale, y);
+    ; draw_square(draw_buffer, x+SCALE, y);
     call draw_square
 
     mov rcx, [rsp]          ; buffer pointer
     mov rdx, [rsp + 8]      ; x
     mov r8, [rsp + 16]      ; y
 
-    sub r8, scale
+    sub r8, SCALE
 
-    ; draw_square(draw_buffer, x, y-scale);
+    ; draw_square(draw_buffer, x, y-SCALE);
     call draw_square
 
     mov rcx, [rsp]          ; buffer pointer
     mov rdx, [rsp + 8]      ; x
     mov r8, [rsp + 16]      ; y
 
-    add r8, scale
+    add r8, SCALE
 
-    ; draw_square(draw_buffer, x, y+scale);
+    ; draw_square(draw_buffer, x, y+SCALE);
     call draw_square
 
     ; Function epilogue
@@ -300,16 +300,16 @@ draw_pixel_on_digits:
     cmp rdx, 0
     jl .return
 
-    cmp rdx, digits_image_x
+    cmp rdx, DIGITS_IMAGE_X
     jge .return
 
     cmp r8, 0
     jl .return
 
-    cmp r8, digits_image_y
+    cmp r8, DIGITS_IMAGE_Y
     jge .return
 
-    imul r8, digits_image_x
+    imul r8, DIGITS_IMAGE_X
     add r8, rdx
     shl r8, 2           ; multiply by 4
     

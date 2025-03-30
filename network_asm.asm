@@ -11,16 +11,16 @@ stored_dense2_bias: incbin "./mnist_simple_layers/layer_2/bias.bin"
 
 section .text
 
-%define mnist_size                      28
-%define input_size                      mnist_size*mnist_size
+%define MNIST_SIZE                      28
+%define INPUT_SIZE                      MNIST_SIZE*MNIST_SIZE
 
 %define dense1_size                     128
-%define dense1_byte_size                4*dense1_size
-%define dense2_size                     10
-%define dense2_byte_size                4*dense2_size
+%define DENSE1_BYTE_SIZE                4*DENSE1_SIZE
+%define DENSE2_SIZE                     10
+%define DENSE2_BYTE_SIZE                4*DENSE2_SIZE
 
-%define dense1_weights_byte_size        input_size*dense1_size*4
-%define dense2_weights_byte_size        dense1_size*dense2_size*4
+%define DENSE1_WEIGHTS_BYTE_SIZE        INPUT_SIZE*DENSE1_SIZE*4
+%define DENSE2_WEIGHTS_BYTE_SIZE        DENSE1_SIZE*DENSE2_SIZE*4
 
 
 ; void load_weights(int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias);
@@ -42,7 +42,7 @@ load_weights:
     ; dense1 weights
     lea rsi, [rel stored_dense1_weights]       ; source
     mov rdi, rcx                               ; destination
-    mov rcx, dense1_weights_byte_size
+    mov rcx, DENSE1_WEIGHTS_BYTE_SIZE
 
     cld                 ; clear direction flag (ensure forward copy)
     rep movsb           ; copy rcx bytes from [rsi] to [rdi]
@@ -51,7 +51,7 @@ load_weights:
     ; dense1 bias
     lea rsi, [rel stored_dense1_bias]          ; source
     mov rdi, rdx                               ; destination
-    mov rcx, dense1_byte_size
+    mov rcx, DENSE1_BYTE_SIZE
 
     cld                 ; clear direction flag (ensure forward copy)
     rep movsb           ; copy rcx bytes from [rsi] to [rdi]
@@ -60,7 +60,7 @@ load_weights:
     ; dense2 weights
     lea rsi, [rel stored_dense2_weights]              ; source
     mov rdi, r8                                       ; destination
-    mov rcx, dense2_weights_byte_size
+    mov rcx, DENSE2_WEIGHTS_BYTE_SIZE
 
     cld                 ; clear direction flag (ensure forward copy)
     rep movsb           ; copy rcx bytes from [rsi] to [rdi]
@@ -69,7 +69,7 @@ load_weights:
     ; dense2 bias
     lea rsi, [rel stored_dense2_bias]                 ; source
     mov rdi, r9                                       ; destination
-    mov rcx, dense2_byte_size
+    mov rcx, DENSE2_BYTE_SIZE
 
     cld                 ; clear direction flag (ensure forward copy)
     rep movsb           ; copy rcx bytes from [rsi] to [rdi]
@@ -93,14 +93,14 @@ run_network:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    ; Reserve 32 bytes of shadow space + sizeof(int)*dense1_size + sizeof(layer_1_output)
-    %define reserved_space dense1_byte_size + 32 + 8
+    ; Reserve 32 bytes of shadow space + sizeof(int)*DENSE1_SIZE + sizeof(layer_1_output)
+    %define reserved_space DENSE1_BYTE_SIZE + 32 + 8
     sub     rsp, reserved_space                                 
 
 
     ; layer1_output
     mov r10, rbp
-    sub r10, dense1_byte_size
+    sub r10, DENSE1_BYTE_SIZE
     sub r10, 8
 
     %define layer1_output [rbp - 8]
@@ -129,8 +129,8 @@ run_network:
     xor r11, r11
     .inner_loop:
 
-    ; layer1_output[row] += dense1_weights[row*input_size + i] * static_cast<int>(input_buffer[i]);
-    mov r9d, input_size
+    ; layer1_output[row] += dense1_weights[row*INPUT_SIZE + i] * static_cast<int>(input_buffer[i]);
+    mov r9d, INPUT_SIZE
     imul r9d, eax
     add r9d, r11d
     mov r9d, DWORD [rdx + 4*r9]
@@ -142,11 +142,11 @@ run_network:
     add DWORD [r10 + 4*rax], r9d
 
     inc r11
-    cmp r11, input_size
+    cmp r11, INPUT_SIZE
     jl .inner_loop
 
     inc rax
-    cmp rax, dense1_size
+    cmp rax, DENSE1_SIZE
     jl .loop
 
     mov r10, layer1_output
@@ -162,7 +162,7 @@ run_network:
     sar DWORD [r10 + rax*4], 8
     .endif:
     inc rax
-    cmp rax, dense1_size
+    cmp rax, DENSE1_SIZE
     jl .loop2
 
 
@@ -207,8 +207,8 @@ run_network:
     xor r11, r11
     .inner_loop2:
 
-    ; output_buffer[row] += dense2_weights[row*dense1_size + i] * layer1_output[i]; 
-    mov r9, QWORD dense1_size
+    ; output_buffer[row] += dense2_weights[row*DENSE1_SIZE + i] * layer1_output[i]; 
+    mov r9, QWORD DENSE1_SIZE
     imul r9, rax
     add r9, r11
     mov r9d, DWORD [rdx + 4*r9]
@@ -217,11 +217,11 @@ run_network:
     add DWORD [r10 + 4*rax], r9d
 
     inc r11
-    cmp r11, dense1_size
+    cmp r11, DENSE1_SIZE
     jl .inner_loop2
 
     inc rax
-    cmp rax, dense2_size
+    cmp rax, DENSE2_SIZE
     jl .loop3
 
     ; Function epilogue
