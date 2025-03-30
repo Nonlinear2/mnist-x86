@@ -9,12 +9,12 @@ typedef struct {
     int width;
     int height;
     uint32_t* pixels;
+    BITMAPINFO bitmap_info;
+    HBITMAP bitmap = 0;
 } Buffer;
 
 LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 
-static BITMAPINFO frame_bitmap_info;
-static HBITMAP frame_bitmap = 0;
 static HDC frame_device_context = 0;
 
 Buffer draw_buffer;
@@ -40,24 +40,54 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     window_class.lpszClassName = window_class_name;
     RegisterClass(&window_class);
     
-    frame_bitmap_info.bmiHeader.biSize = sizeof(frame_bitmap_info.bmiHeader);
-    frame_bitmap_info.bmiHeader.biPlanes = 1;
-    frame_bitmap_info.bmiHeader.biBitCount = 32;
-    frame_bitmap_info.bmiHeader.biCompression = BI_RGB;
+    draw_buffer.bitmap_info.bmiHeader.biSize = sizeof(draw_buffer.bitmap_info.bmiHeader);
+    draw_buffer.bitmap_info.bmiHeader.biPlanes = 1;
+    draw_buffer.bitmap_info.bmiHeader.biBitCount = 32;
+    draw_buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
     frame_device_context = CreateCompatibleDC(0);
     
-    static HWND window_handle;
-    window_handle = CreateWindow(window_class_name, L"Drawing Pixels", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        640, 300, 640, 480, NULL, NULL, hInstance, NULL);
-        if(window_handle == NULL) { return -1; }
+    draw_buffer.bitmap = CreateDIBSection(NULL, &draw_buffer.bitmap_info, DIB_RGB_COLORS, (void**)&draw_buffer.pixels, 0, 0);
+    SelectObject(frame_device_context, draw_buffer.bitmap);
+
+    assert(window_y % mnist_size == 0);
+
+    draw_buffer.width = draw_buffer.height = window_y;
+    draw_buffer.pixels = new uint32_t[window_y * window_y];
+
+    uint32_t mnist_buffer_pixels[mnist_size * mnist_size];
+    mnist_buffer = {mnist_size, mnist_size, mnist_buffer_pixels};
+
+    uint32_t digits_buffer_pixels[mnist_size * mnist_size];
+    digits_buffer = {digits_image_x, digits_image_y, digits_buffer_pixels};
+
+    load_digit_image((uint8_t*)digits_buffer_pixels);
+    load_digit_image(saved_digits_buffer);
+
+    // set alpha values to 255
+    for (int i = 0; i < window_y * window_y; i++){
+        draw_buffer.pixels[i] = 0x000000FF;
+    }
+    
+    load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
+
+    static HWND window_handle = CreateWindow(
+        window_class_name,
+        L"Drawing Pixels",
+        (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~WS_THICKFRAME),
+        640, 300, 640, 480,
+        NULL, NULL, hInstance, NULL
+    );
+
+    if(window_handle == NULL)
+        return -1;
+
+    while(!quit){
+        static MSG message = { 0 };
+        while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) { DispatchMessage(&message); }
         
-        while(!quit) {
-            static MSG message = { 0 };
-            while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) { DispatchMessage(&message); }
-            
-            InvalidateRect(window_handle, NULL, FALSE);
-            UpdateWindow(window_handle);
-        }
+        InvalidateRect(window_handle, NULL, FALSE);
+        UpdateWindow(window_handle);
+    }
     return 0;
 }
 
@@ -81,42 +111,6 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
                 SRCCOPY);
                 EndPaint(window_handle, &paint);
             break;
-            
-        case WM_SIZE:
-            frame_bitmap_info.bmiHeader.biWidth  = LOWORD(lParam);
-            frame_bitmap_info.bmiHeader.biHeight = HIWORD(lParam);
-
-            if(frame_bitmap) DeleteObject(frame_bitmap);
-            frame_bitmap = CreateDIBSection(NULL, &frame_bitmap_info, DIB_RGB_COLORS, (void**)&frame.pixels, 0, 0);
-            SelectObject(frame_device_context, frame_bitmap);
-            
-            frame.width =  LOWORD(lParam);
-            frame.height = HIWORD(lParam);
-            
-
-            assert(window_y % mnist_size == 0);
-
-            draw_buffer.width = draw_buffer.height = window_y;
-            draw_buffer.pixels = new uint32_t[window_y * window_y];
-
-            uint32_t mnist_buffer_pixels[mnist_size * mnist_size];
-            mnist_buffer = {mnist_size, mnist_size, mnist_buffer_pixels};
-
-            uint32_t digits_buffer_pixels[mnist_size * mnist_size];
-            digits_buffer = {digits_image_x, digits_image_y, digits_buffer_pixels};
-
-            load_digit_image((uint8_t*)digits_buffer_pixels);
-            load_digit_image(saved_digits_buffer);
-        
-            // set alpha values to 255
-            for (int i = 0; i < window_y * window_y; i++){
-                draw_buffer.pixels[i] = 0x000000FF;
-            }
-            
-            load_weights(dense1_weights, dense1_bias, dense2_weights, dense2_bias);
-
-            break;
-        
         default:
             return DefWindowProc(window_handle, message, wParam, lParam);
         return 0;
