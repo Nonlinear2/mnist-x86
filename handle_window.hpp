@@ -13,7 +13,7 @@ extern "C" void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value);
 extern "C" void draw_square(uint8_t* draw_buffer, int x, int y);
 // void draw_square(uint8_t* draw_buffer, int x, int y);
 
-extern "C" void clear_draw_region(uint8_t* buffer);
+extern "C" void clear_draw_region(uint8_t* draw_buffer);
 // void clear_draw_region(uint8_t* draw_buffer);
 
 extern "C" void get_draw_region_features(uint8_t* draw_buffer, uint8_t* mnist_buffer);
