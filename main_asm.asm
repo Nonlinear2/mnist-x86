@@ -1,5 +1,6 @@
 extern RegisterClassW
 extern CreateWindowW
+extern AdjustWindowRect
 extern WindowProcessMessage
 
 global main
@@ -201,4 +202,35 @@ WinMain:
     mov QWORD r8, QWORD DIGITS_IMAGE_Y
     call initialize_device_context
 
-    
+    mov rcx, [digits_buffer.pixels]
+    call load_digit_image
+
+    lea rcx, [rel saved_digits_buffer]
+    call load_digit_image
+
+    %define window_rect                     window_class - 32
+    %define window_rect.left                window_class - 32
+    %define window_rect.top                 window_class - 24
+    %define window_rect.right               window_class - 16
+    %define window_rect.bottom              window_class - 8
+
+    mov QWORD [window_rect.left], QWORD 0
+    mov QWORD [window_rect.top], QWORD 0
+    mov QWORD [window_rect.right], QWORD WINDOW_X
+    mov QWORD [window_rect.bottom], QWORD WINDOW_Y
+
+    %define val WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
+    mov rcx, window_rect
+    mov rdx, val
+    xor r8, r8
+    call AdjustWindowRect
+
+    %define val (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX)),
+    lea rcx, [rel window_name]
+    lea rdx, [rel window_name]
+    mov r8, val
+    mov r9, 440
+    push NULL
+    push hInstance
+    push NULL
+    push NULL
