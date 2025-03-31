@@ -33,7 +33,7 @@ global main
 %define DENSE2_WEIGHTS_BYTE_SIZE        DENSE1_SIZE*DENSE2_SIZE*4
 
 section .data
-window_name db "MNIST-x86", 0
+window_name  dw 'M', 'N', 'I', 'S', 'T', '-', 'x', '8', '6', 0    ; wide character string
 
 quit db 0
 lmb_down db 0
@@ -88,7 +88,7 @@ dense2_bias resb DENSE2_BYTE_SIZE
 
 output_buffer resb DENSE2_BYTE_SIZE
 
-paint                   ; PAINTSTRUCT (... bytes)
+paint resb 72           ; PAINTSTRUCT (72 bytes)
 device_context resb 8   ; HDC (8 bytes)
 
 
@@ -113,10 +113,12 @@ main:
     pop rbp ; Restore the caller's base pointer value
     ret
 
+; int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow);
 WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    sub     rsp, 32 + ...                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
 
+    %define window_class                        [rbp - 8]
 

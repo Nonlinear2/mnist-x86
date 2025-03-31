@@ -6,6 +6,11 @@
 static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
+// int main(){
+//     std::cout << sizeof(PAINTSTRUCT) << std::endl;
+//     return 0;
+// }
+
 struct Buffer {
     int width;
     int height;
@@ -52,7 +57,7 @@ void initialize_device_context(Buffer& buffer, int width, int height){
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
     const wchar_t window_class_name[] = L"MNIST-x86";
-    static WNDCLASS window_class = { 0 };
+    WNDCLASS window_class = { 0 };
     window_class.lpfnWndProc = WindowProcessMessage;
     window_class.hInstance = hInstance;
     window_class.lpszClassName = window_class_name;
@@ -82,9 +87,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 
     static HWND window_handle = CreateWindow(
         window_class_name,
-        L"Drawing Pixels",
+        L"MNIST-x86",
         (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX)),
-        640, 300, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top,
+        440, 120, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top,
         NULL, NULL, hInstance, NULL
     );
 
