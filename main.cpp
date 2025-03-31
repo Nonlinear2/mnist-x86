@@ -7,7 +7,7 @@ static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
 // int main(){
-//     std::cout << sizeof(PAINTSTRUCT) << std::endl;
+//     std::cout << sizeof(WNDCLASS) << std::endl;
 //     return 0;
 // }
 

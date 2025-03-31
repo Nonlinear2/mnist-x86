@@ -1,16 +1,6 @@
-extern CreateWindowExA
-extern DefWindowProcA
-extern DispatchMessageA
-extern ExitProcess
-extern GetMessageA
-extern GetModuleHandleA
-extern IsDialogMessageA
-extern LoadImageA
-extern PostQuitMessage
-extern RegisterClassExA
-extern ShowWindow
-extern TranslateMessage
-extern UpdateWindow
+extern RegisterClassW
+extern CreateWindowW
+extern WindowProcessMessage
 
 global main
 
@@ -78,7 +68,7 @@ hInstance resq 1
 
 draw_buffer_pixels resb DRAW_BUFFER_BYTE_SIZE
 mnist_array resb MNIST_ARRAY_BYTE_SIZE
-digits_buffer resb DIGITS_BUFFER_BYTE_SIZE
+digits_buffer_pixels resb DIGITS_BUFFER_BYTE_SIZE
 saved_digits_buffer resb DIGITS_BUFFER_BYTE_SIZE
 
 dense1_weights resb DENSE1_WEIGHTS_BYTE_SIZE
@@ -119,6 +109,57 @@ WinMain:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 32 + ...                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
+        
+    ; hInstance in rcx
+    ; hPrevInstance in rdx
+    ; pCmdLine in r8
+    ; nCmdShow in r9
 
-    %define window_class                        [rbp - 8]
+    %define window_class                        rbp - 72    ; WNDCLASS structure, 72 bytes
 
+    %define window_class.style                  rbp - 72    ; UINT, 4 bytes + 4 padding bytes
+    %define window_class.lpfnWndProc            rbp - 64    ; WNDPROC, 8 bytes
+    %define window_class.cbClsExtra             rbp - 56    ; int, 4 bytes
+    %define window_class.cbWndExtra             rbp - 52    ; int, 4 bytes
+    %define window_class.hInstance              rbp - 48    ; HINSTANCE, 8 bytes
+    %define window_class.hIcon                  rbp - 40    ; HICON, 8 bytes
+    %define window_class.hCursor                rbp - 32    ; HCURSOR, 8 bytes
+    %define window_class.hbrBackground          rbp - 24    ; HBRUSH, 8 bytes
+    %define window_class.lpszMenuName           rbp - 16    ; LPCWSTR, 8 bytes
+    %define window_class.lpszClassName          rbp - 8     ; LPCWSTR, 8 bytes
+
+    %define hInstance                           rbp - 80    ; HINSTANCE, 8 bytes
+    mov [hInstance], rcx
+
+    mov [window_class.lpfnWndProc], WindowProcessMessage
+    mov [window_class.hInstance], [hInstance]
+    
+    lea rax, [rel window_name]
+    mov [window_class.lpszClassName], rax
+
+    ; window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    mov rcx, BLACK_BRUSH
+    call GetStockObject
+    mov [window_class.hbrBackground], rax
+
+    lea rcx, [window_class]
+    call RegisterClassW
+
+
+    mov DWORD [draw_buffer.width], DWORD WINDOW_Y
+    mov DWORD [draw_buffer.height], DWORD WINDOW_Y
+    
+    lea QWORD [draw_buffer.pixels], [rel draw_buffer_pixels]
+
+    mov DWORD [digits_buffer.width], DWORD DIGITS_IMAGE_X
+    mov DWORD [digits_buffer.height], DWORD DIGITS_IMAGE_Y
+    
+    lea QWORD [draw_buffer.pixels], [rel digits_buffer_pixels]
+
+    lea rcx, [rel dense1_weights]
+    lea rdx, [rel dense1_bias]
+    lea r8, [rel dense2_weights]
+    lea r9, [rel dense2_bias]
+    call load_weights
+
+    
