@@ -103,6 +103,34 @@ main:
     pop rbp ; Restore the caller's base pointer value
     ret
 
+; void initialize_device_context(Buffer& buffer, int width, int height);
+initialize_device_context:
+    ; Function prologue
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+
+    ; buffer in rcx
+    ; width in rdx
+    ; height in r8
+
+    ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
+    ; buffer.bitmap_info.bmiHeader.biWidth = width;
+    ; buffer.bitmap_info.bmiHeader.biHeight = -height;
+    ; buffer.bitmap_info.bmiHeader.biPlanes = 1;
+    ; buffer.bitmap_info.bmiHeader.biBitCount = 32;
+    ; buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
+    ; buffer.frame_device_context = CreateCompatibleDC(0);
+    
+    ; buffer.bitmap = CreateDIBSection(NULL, &buffer.bitmap_info, DIB_RGB_COLORS, (void**)&buffer.pixels, 0, 0);
+    ; SelectObject(buffer.frame_device_context, buffer.bitmap);
+    ; Function epilogue
+    xor rax, rax                  ; Return 0
+
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
 ; int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow);
 WinMain:
     ; Function prologue
@@ -161,5 +189,16 @@ WinMain:
     lea r8, [rel dense2_weights]
     lea r9, [rel dense2_bias]
     call load_weights
+
+    
+    lea rcx, [rel draw_buffer]
+    mov QWORD rdx, QWORD WINDOW_X
+    mov QWORD r8, QWORD WINDOW_Y
+    call initialize_device_context
+
+    lea rcx, [rel digits_buffer]
+    mov QWORD rdx, QWORD DIGITS_IMAGE_X
+    mov QWORD r8, QWORD DIGITS_IMAGE_Y
+    call initialize_device_context
 
     
