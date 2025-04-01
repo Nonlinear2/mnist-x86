@@ -2,6 +2,7 @@ extern RegisterClassW
 extern CreateWindowW
 extern AdjustWindowRect
 extern WindowProcessMessage
+extern LoadCursorW
 
 global main
 
@@ -234,3 +235,176 @@ WinMain:
     push hInstance
     push NULL
     push NULL
+    mov rax [window_rect.bottom]
+    sub rax, [window_rect.top]
+    push rax
+    mov rax [window_rect.right]
+    sub rax, [window_rect.left]
+    push rax
+    push 120
+    call CreateWindowW
+
+    %define window_handle                       window_rect - 8
+    mov window_handle rax
+
+    cmp rax, NULL
+    je .crash
+
+    mov rcx, NULL
+    mov rdx, IDC_ARROW
+
+    call LoadCursorW
+    mov rcx, rax
+
+    call SetCursor
+
+    %define message                         window_handle - 8 
+    .mainloop:
+    mov QWORD [message], QWORD 0
+
+    .while:
+    mov rcx, message
+    mov rdx, NULL
+    mov r8, 0
+    mov r9, 0
+    push PM_REMOVE
+    call PeekMessage
+
+    cmp rax, 0
+    je .break_while
+
+    mov rcx, message
+    call DispatchMessage
+    jmp .while
+    .break_while:
+
+    mov rcx, window_handle
+    mov rdx, NULL
+    mov r8, FALSE
+    call InvalidateRect
+
+    mov rcx, window_handle
+    call UpdateWindowW
+
+    cmp quit, 0
+    je .return
+    jmp .mainloop
+
+    .return:
+        ; Function epilogue
+    xor rax, rax                  ; Return 0
+    .crash:
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
+
+WindowProcessMessage:
+    push    rbp
+    mov     rbp, rsp
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
+    
+    push r9
+    push r8
+    push rdx
+    push rcx
+
+    %define window_handle                           rbp - 32
+    %define message                                 rbp - 24
+    %define wParam                                  rbp - 16
+    %define lParam                                  rbp - 8
+
+    ; switch
+    cmp [message], WM_QUIT
+    je .destroy
+
+    cmp [message], WM_DESTROY
+    je .destroy
+
+    cmp [message], WM_LBUTTONDOWN
+    je .lmb_down
+
+    cmp [message], WM_MOUSEMOVE
+    je .mouse_move
+
+    cmp [message], WM_LBUTTONUP
+    je .lmb_up
+
+    cmp [message], WM_RBUTTONDOWN
+    je .rmb_down
+
+    cmp [message], WM_KEYDOWN
+    je .key_down
+
+    cmp [message], WM_CAPTURECHANGED
+    je .capture_changed
+
+    cmp [message], WM_PAINT
+    je .paint
+
+    mov rcx, [window_handle]
+    mov rdx, [message]
+    mov r8, [wParam]
+    mov r9, [lParam]
+    call DefWindowProc
+
+    jmp .break
+
+    .destroy:
+    mov [quit], 1
+    jmp .break
+
+    .lmb_down:
+    mov [lmb_down], 1
+    mov rcx, [window_handle]
+    call SetCapture
+
+    .mouse_move:
+    cmp lmb_down, 0
+    je .break
+    mov rcx, [draw_buffer.pixels]
+    mov rdx, [lParam]
+    and rdx, 0x00000000ffffffff
+    mov r8, [lParam]
+    shr r8, 0xffffffff
+    call update_on_mouse_click
+
+    mov rcx, [draw_buffer.pixels]
+    mov rdx, [mnist_array]
+    call get_draw_region_features
+
+    mov rcx, window_handle
+    mov rdx, NULL
+    mov r8, FALSE
+    call InvalidateRect
+    jmp .break
+
+    .lmb_up:
+    mov [lmb_down], 0
+    call ReleaseCapture
+    jmp .break
+
+    .rmb_down:
+    mov rcx, draw_buffer.pixels
+    call clear_draw_region
+    jmp .break
+
+    .key_down:
+    cmp [wParam], VK_SPACE
+    jne .break
+    mov
+    jmp .break
+
+    .capture_changed:
+    mov [lmb_down], 0
+    jmp .break
+
+    .paint:
+    
+
+    .break:
+    ; Function epilogue
+    xor rax, rax                  ; Return 0
+    
+    mov rsp, rbp ; Deallocate local variables
+    pop rbp ; Restore the caller's base pointer value
+    ret
