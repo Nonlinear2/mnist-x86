@@ -15,10 +15,17 @@ extern BeginPaint
 extern BitBlt
 extern EndPaint
 
+extern UpdateWindowW
+extern ReleaseCapture
+
 extern MakeIntRessourceW
 
 extern load_weights
 extern load_digit_image
+extern clear_draw_region
+extern get_draw_region_features
+extern update_on_mouse_click
+
 
 global main
 
@@ -253,10 +260,10 @@ WinMain:
     lea rdx, [rel window_name]
     mov r8, val
     mov r9, 440
-    push NULL
+    push 0                                  ; NULL
     push hInstance
-    push NULL
-    push NULL
+    push 0                                  ; NULL
+    push 0                                  ; NULL
     mov rax [window_rect.bottom]
     sub rax, [window_rect.top]
     push rax
@@ -293,7 +300,7 @@ WinMain:
     mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
-    push PM_REMOVE
+    push 0x0001                             ; PM_REMOVE
     call PeekMessage
 
     add rsi, 8
@@ -436,7 +443,7 @@ WindowProcessMessage:
     xor r8, r8
     mov r9, WINDOW_Y
 
-    push SRCCOPY
+    push 0x00CC0020                                 ; SRCCOPY
     push QWORD 0
     push QWORD 0
     push draw_buffer.frame_device_context
