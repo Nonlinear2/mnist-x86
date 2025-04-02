@@ -1,8 +1,24 @@
-extern RegisterClassW
-extern CreateWindowW
-extern AdjustWindowRect
 extern WindowProcessMessage
+extern GetModuleHandleW
+extern GetStockObject
+extern RegisterClassW
+extern AdjustWindowRect
+extern CreateWindowW
 extern LoadCursorW
+extern SetCursor
+extern PeekMessage
+extern DispatchMessage
+extern InvalidateRect
+extern DefWindowProc
+extern SetCapture
+extern BeginPaint
+extern BitBlt
+extern EndPaint
+
+extern MakeIntRessourceW
+
+extern load_weights
+extern load_digit_image
 
 global main
 
@@ -17,6 +33,12 @@ global main
 %define DRAW_BUFFER_BYTE_SIZE       WINDOW_Y * WINDOW_Y * 4
 %define DIGITS_BUFFER_BYTE_SIZE     DIGITS_IMAGE_X * DIGITS_IMAGE_Y * 4
 %define MNIST_ARRAY_BYTE_SIZE       MNIST_SIZE * MNIST_SIZE * 4
+
+%define MNIST_SIZE                      28
+%define INPUT_SIZE                      MNIST_SIZE*MNIST_SIZE
+
+%define DENSE1_SIZE                     128
+%define DENSE2_SIZE                     10
 
 %define DENSE1_BYTE_SIZE                4*DENSE1_SIZE
 %define DENSE2_BYTE_SIZE                4*DENSE2_SIZE
@@ -93,7 +115,7 @@ main:
     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
     
     xor rcx, rcx
-    call GetModuleHandleA
+    call GetModuleHandleW
     mov [rel hInstance], rax
 
     call WinMain
@@ -138,7 +160,7 @@ WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32 + ...                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
+    sub     rsp, 32 + 120                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
         
     ; hInstance in rcx
     ; hPrevInstance in rdx
@@ -161,14 +183,14 @@ WinMain:
     %define hInstance                           rbp - 80    ; HINSTANCE, 8 bytes
     mov [hInstance], rcx
 
-    mov [window_class.lpfnWndProc], WindowProcessMessage
-    mov [window_class.hInstance], [hInstance]
+    mov QWORD [window_class.lpfnWndProc], QWORD WindowProcessMessage
+    mov [window_class.hInstance], rcx
     
     lea rax, [rel window_name]
     mov [window_class.lpszClassName], rax
 
     ; window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    mov rcx, BLACK_BRUSH
+    mov rcx, QWORD 4                   ; BLACK_BRUSH
     call GetStockObject
     mov [window_class.hbrBackground], rax
 
@@ -244,14 +266,18 @@ WinMain:
     push 120
     call CreateWindowW
 
-    %define window_handle                       window_rect - 8
-    mov window_handle rax
+    add rsi, 56
 
-    cmp rax, NULL
+    %define window_handle                       window_rect - 8
+    mov window_handle, rax
+
+    cmp rax, 0                              ; NULL
     je .crash
 
-    mov rcx, NULL
-    mov rdx, IDC_ARROW
+    mov rcx, 32512
+    call MakeIntRessourceW
+    mov rdx, rax                            ; IDC_ARROW
+    mov rcx, 0                              ; NULL
 
     call LoadCursorW
     mov rcx, rax
@@ -264,11 +290,13 @@ WinMain:
 
     .while:
     mov rcx, message
-    mov rdx, NULL
+    mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
     push PM_REMOVE
     call PeekMessage
+
+    add rsi, 8
 
     cmp rax, 0
     je .break_while
@@ -279,8 +307,8 @@ WinMain:
     .break_while:
 
     mov rcx, window_handle
-    mov rdx, NULL
-    mov r8, FALSE
+    mov rdx, 0                          ; NULL
+    mov r8, 0                           ; FALSE
     call InvalidateRect
 
     mov rcx, window_handle
@@ -314,31 +342,31 @@ WindowProcessMessage:
     %define lParam                                  rbp - 8
 
     ; switch
-    cmp [message], WM_QUIT
+    cmp [message], 0x0012               ; WM_QUIT
     je .destroy
 
-    cmp [message], WM_DESTROY
+    cmp [message], 0x0002               ; WM_DESTROY
     je .destroy
 
-    cmp [message], WM_LBUTTONDOWN
+    cmp [message], 0x0201               ; WM_LBUTTONDOWN
     je .lmb_down
 
-    cmp [message], WM_MOUSEMOVE
+    cmp [message], 0x0200               ; WM_MOUSEMOVE
     je .mouse_move
 
-    cmp [message], WM_LBUTTONUP
+    cmp [message], 0x0202               ; WM_LBUTTONUP
     je .lmb_up
 
-    cmp [message], WM_RBUTTONDOWN
+    cmp [message], 0x0204               ; WM_RBUTTONDOWN
     je .rmb_down
 
-    cmp [message], WM_KEYDOWN
+    cmp [message], 0x0100               ; WM_KEYDOWN
     je .key_down
 
-    cmp [message], WM_CAPTURECHANGED
+    cmp [message], 0x0215               ; WM_CAPTURECHANGED
     je .capture_changed
 
-    cmp [message], WM_PAINT
+    cmp [message], 0x000F               ; WM_PAINT
     je .paint
 
     mov rcx, [window_handle]
@@ -373,8 +401,8 @@ WindowProcessMessage:
     call get_draw_region_features
 
     mov rcx, window_handle
-    mov rdx, NULL
-    mov r8, FALSE
+    mov rdx, 0              ; NULL
+    mov r8, 0               ; FALSE
     call InvalidateRect
     jmp .break
 
@@ -389,7 +417,7 @@ WindowProcessMessage:
     jmp .break
 
     .key_down:
-    cmp [wParam], VK_SPACE
+    cmp [wParam], 0x20          ; VK_SPACE
     jne .break
     mov
     jmp .break
