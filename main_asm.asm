@@ -399,7 +399,38 @@ WindowProcessMessage:
     jmp .break
 
     .paint:
-    
+    mov rcx, window_handle
+    mov rdx, paint
+    call BeginPaint
+    push rax
+    mov rcx, rax
+    xor rdx, rdx
+    xor r8, r8
+    mov r9, WINDOW_Y
+
+    push SRCCOPY
+    push QWORD 0
+    push QWORD 0
+    push draw_buffer.frame_device_context
+    push WINDOW_Y
+
+    call BitBlt
+
+    mov [rsi + 8], DIGITS_IMAGE_Y
+
+    mov rcx, [rsi + 40]         ; saved rax
+    mov rdx, WINDOW_Y + 10
+    xor r8, r8
+    mov r9, DIGITS_IMAGE_X
+
+    call BitBlt
+
+    add rsi, 48
+
+    mov rcx, window_handle
+    mov rdx, paint
+    call EndPaint
+    jmp .break:
 
     .break:
     ; Function epilogue
