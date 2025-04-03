@@ -3,26 +3,27 @@ extern GetModuleHandleW
 extern GetStockObject
 extern RegisterClassW
 extern AdjustWindowRect
-extern CreateWindowW
+extern CreateWindowExW
 extern LoadCursorW
 extern SetCursor
-extern PeekMessage
-extern DispatchMessage
+extern PeekMessageW
+extern DispatchMessageW
 extern InvalidateRect
-extern DefWindowProc
+extern DefWindowProcW
 extern SetCapture
 extern BeginPaint
 extern BitBlt
 extern EndPaint
 
-extern UpdateWindowW
+extern UpdateWindow
 extern ReleaseCapture
 
-extern MakeIntRessourceW
+extern MakeIntResourceW
 
 extern load_weights
 extern load_digit_image
 extern clear_draw_region
+extern draw_circle_on_digits
 extern get_draw_region_features
 extern update_on_mouse_click
 extern run_network
@@ -258,10 +259,11 @@ WinMain:
     xor r8, r8
     call AdjustWindowRect
 
-    lea rcx, [rel window_name]
+    xor rcx, rcx                            ; dwExStyle = 0 
     lea rdx, [rel window_name]
-    mov r8, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    mov r9, 440
+    lea r8, [rel window_name]
+    mov r9, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
+    push QWORD 440
     push QWORD 0                                  ; NULL
     lea rax, [hInstance]
     push rax
@@ -274,7 +276,7 @@ WinMain:
     sub rax, [window_rect.left]
     push rax
     push 120
-    call CreateWindowW
+    call CreateWindowExW
 
     add rsi, 56
 
@@ -284,10 +286,8 @@ WinMain:
     cmp rax, 0                              ; NULL
     je .crash
 
-    mov rcx, 32512
-    call MakeIntRessourceW
-    mov rdx, rax                            ; IDC_ARROW
     mov rcx, 0                              ; NULL
+    mov rdx, 32512                          ; IDC_ARROW
 
     call LoadCursorW
     mov rcx, rax
@@ -304,7 +304,7 @@ WinMain:
     mov r8, 0
     mov r9, 0
     push 0x0001                             ; PM_REMOVE
-    call PeekMessage
+    call PeekMessageW
 
     add rsi, 8
 
@@ -312,7 +312,7 @@ WinMain:
     je .break_while
 
     lea rcx, [message]
-    call DispatchMessage
+    call DispatchMessageW
     jmp .while
     .break_while:
 
@@ -322,7 +322,7 @@ WinMain:
     call InvalidateRect
 
     lea rcx, [window_handle]
-    call UpdateWindowW
+    call UpdateWindow
 
     cmp [quit], BYTE 0
     je .return
@@ -383,7 +383,7 @@ WindowProcessMessage:
     mov rdx, [message]
     mov r8, [wParam]
     mov r9, [lParam]
-    call DefWindowProc
+    call DefWindowProcW
 
     jmp .break
 

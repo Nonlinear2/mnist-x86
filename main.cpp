@@ -6,10 +6,10 @@
 static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
-int main(){
-     std::cout << (long)((WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))) << std::endl;
-    return 0;
-}
+// int main() {
+//     std::cout << (long)IDC_ARROW << std::endl;
+//     return 0;
+// }
 
 struct Buffer {
     int width;
