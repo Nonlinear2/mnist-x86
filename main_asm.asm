@@ -25,6 +25,7 @@ extern load_digit_image
 extern clear_draw_region
 extern get_draw_region_features
 extern update_on_mouse_click
+extern run_network
 
 
 global main
@@ -36,6 +37,7 @@ global main
 %define SCALE                       WINDOW_Y / MNIST_SIZE
 %define DIGITS_IMAGE_X              50
 %define DIGITS_IMAGE_Y              560
+%define DIGITS_IMAGE_BYTE_SIZE      DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4
 
 %define DRAW_BUFFER_BYTE_SIZE       WINDOW_Y * WINDOW_Y * 4
 %define DIGITS_BUFFER_BYTE_SIZE     DIGITS_IMAGE_X * DIGITS_IMAGE_Y * 4
@@ -427,7 +429,52 @@ WindowProcessMessage:
     .key_down:
     cmp QWORD [wParam], QWORD 0x20          ; VK_SPACE
     jne .break
-    mov
+
+    xor rax, rax
+    .loop:
+    mov rcx, [saved_digits_buffer + rax]
+    mov [digits_buffer_pixels + rax], rcx
+    inc rax
+    cmp rax, DIGITS_IMAGE_BYTE_SIZE
+    jle .loop
+
+    lea rcx, [mnist_array]
+    lea rdx, [dense1_weights]
+    lea r8, [dense1_bias]
+    lea r9, [dense2_weights]
+    lea rax, [dense2_bias]
+    push rax
+    lea rax, [output_buffer]
+    push rax
+    call run_network
+
+    mov rcx, [output_buffer]
+    xor r8, r8
+    mov rax, 1
+    .loop2:
+    cmp rcx, [output_buffer + rax]
+    jle .keep
+    mov rcx, [output_buffer + rax]
+    mov r8, rax
+    .keep:
+
+    inc rax
+    cmp rax, DENSE2_SIZE
+    jle .loop2
+
+    lea rcx, [digits_buffer_pixels]
+    mov rdx, 24
+    imul r8, 57
+    add r8, 24
+    mov r9, 20
+
+    call draw_circle_on_digits
+
+    lea rcx, [window_handle] 
+    xor rdx, rdx                                ; NULL 
+    xor r8, r8                                  ; FALSE
+    call InvalidateRect
+
     jmp .break
 
     .capture_changed:
