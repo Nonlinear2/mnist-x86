@@ -158,13 +158,13 @@ initialize_device_context:
 
     ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
     ; bmiHeader offset is 0
-    mov [rcx], DWORD                ; biSize offset is 0
-    mov [rcx + 8], rdx              ; biWidth offset is 8
-    neg r8
-    mov [rcx + 16], r8              ; biHeight offset is 16
-    mov BYTE [rcx + 24], BYTE 1     ; biPlanes offset is 24
-    mov BYTE [rcx + 32], BYTE 32    ; biBitCount offset is 32
-    mov DWORD [rcx + 40], DWORD 0   ; biCompression offset is 40, value is BI_RGB
+    mov DWORD [rcx], 40             ; biSize offset is 0
+    mov DWORD [rcx + 4], edx        ; biWidth offset is 4
+    neg r8d
+    mov DWORD [rcx + 8], r8d        ; biHeight offset is 8
+    mov WORD [rcx + 24], 1     ; biPlanes offset is 12
+    mov WORD [rcx + 32], 32    ; biBitCount offset is 14
+    mov DWORD [rcx + 40], 0   ; biCompression offset is 16, value is BI_RGB
 
     xor rcx, rcx
     call CreateCompatibleDC
@@ -237,16 +237,16 @@ WinMain:
     call RegisterClassW
 
 
-    mov DWORD [rel draw_buffer.width], DWORD WINDOW_Y
-    mov DWORD [rel draw_buffer.height], DWORD WINDOW_Y
+    mov DWORD [rel draw_buffer.width], WINDOW_Y
+    mov DWORD [rel draw_buffer.height], WINDOW_Y
     
-    lea rax, QWORD [rel draw_buffer_pixels]
+    lea rax, [rel draw_buffer_pixels]
     mov QWORD [rel draw_buffer.pixels], rax
 
-    mov DWORD [digits_buffer.width], DWORD DIGITS_IMAGE_X
-    mov DWORD [digits_buffer.height], DWORD DIGITS_IMAGE_Y
+    mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
+    mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
     
-    lea rax, QWORD [rel digits_buffer_pixels]
+    lea rax, [rel digits_buffer_pixels]
     mov QWORD [rel draw_buffer.pixels], rax
 
     lea rcx, [rel dense1_weights]
@@ -257,13 +257,13 @@ WinMain:
 
     
     lea rcx, [rel draw_buffer]
-    mov QWORD rdx, QWORD WINDOW_X
-    mov QWORD r8, QWORD WINDOW_Y
+    mov rdx, WINDOW_X
+    mov r8, WINDOW_Y
     call initialize_device_context
 
     lea rcx, [rel digits_buffer]
-    mov QWORD rdx, QWORD DIGITS_IMAGE_X
-    mov QWORD r8, QWORD DIGITS_IMAGE_Y
+    mov rdx, DIGITS_IMAGE_X
+    mov r8, DIGITS_IMAGE_Y
     call initialize_device_context
 
     mov rcx, [digits_buffer.pixels]
@@ -278,10 +278,10 @@ WinMain:
     %define window_rect.right               window_class - 16
     %define window_rect.bottom              window_class - 8
 
-    mov QWORD [window_rect.left], QWORD 0
-    mov QWORD [window_rect.top], QWORD 0
-    mov QWORD [window_rect.right], QWORD WINDOW_X
-    mov QWORD [window_rect.bottom], QWORD WINDOW_Y
+    mov QWORD [window_rect.left], 0
+    mov QWORD [window_rect.top], 0
+    mov QWORD [window_rect.right], WINDOW_X
+    mov QWORD [window_rect.bottom], WINDOW_Y
 
     lea rcx, [window_rect]
     mov rdx, 0xCA0000                       ; WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
@@ -292,12 +292,12 @@ WinMain:
     lea rdx, [rel window_name]
     lea r8, [rel window_name]
     mov r9, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    push QWORD 440
-    push QWORD 0                                  ; NULL
+    push 440
+    push 0                                  ; NULL
     lea rax, [hInstance]
     push rax
-    push QWORD 0                                  ; NULL
-    push QWORD 0                                  ; NULL
+    push 0                                  ; NULL
+    push 0                                  ; NULL
     mov rax, [window_rect.bottom]
     sub rax, [window_rect.top]
     push rax
@@ -325,7 +325,7 @@ WinMain:
 
     %define message                         window_handle - 8 
     .mainloop:
-    mov QWORD [message], QWORD 0
+    mov QWORD [message], 0
 
     .while:
     lea rcx, [message]
@@ -353,7 +353,7 @@ WinMain:
     lea rcx, [window_handle]
     call UpdateWindow
 
-    cmp [rel quit], BYTE 0
+    cmp BYTE [rel quit], 0
     je .return
     jmp .mainloop
 
@@ -381,31 +381,31 @@ WindowProcessMessage:
     %define lParam                                  rbp - 8
 
     ; switch
-    cmp QWORD [message], QWORD 0x0012               ; WM_QUIT
+    cmp QWORD [message], 0x0012               ; WM_QUIT
     je .destroy
 
-    cmp QWORD [message], QWORD 0x0002               ; WM_DESTROY
+    cmp QWORD [message], 0x0002               ; WM_DESTROY
     je .destroy
 
-    cmp QWORD [message], QWORD 0x0201               ; WM_LBUTTONDOWN
+    cmp QWORD [message], 0x0201               ; WM_LBUTTONDOWN
     je .lmb_down
 
-    cmp QWORD [message], QWORD 0x0200               ; WM_MOUSEMOVE
+    cmp QWORD [message], 0x0200               ; WM_MOUSEMOVE
     je .mouse_move
 
-    cmp QWORD [message], QWORD 0x0202               ; WM_LBUTTONUP
+    cmp QWORD [message], 0x0202               ; WM_LBUTTONUP
     je .lmb_up
 
-    cmp QWORD [message], QWORD 0x0204               ; WM_RBUTTONDOWN
+    cmp QWORD [message], 0x0204               ; WM_RBUTTONDOWN
     je .rmb_down
 
-    cmp QWORD [message], QWORD 0x0100               ; WM_KEYDOWN
+    cmp QWORD [message], 0x0100               ; WM_KEYDOWN
     je .key_down
 
-    cmp QWORD [message], QWORD 0x0215               ; WM_CAPTURECHANGED
+    cmp QWORD [message], 0x0215               ; WM_CAPTURECHANGED
     je .capture_changed
 
-    cmp QWORD [message], QWORD 0x000F               ; WM_PAINT
+    cmp QWORD [message], 0x000F               ; WM_PAINT
     je .paint
 
     mov rcx, [window_handle]
@@ -417,16 +417,16 @@ WindowProcessMessage:
     jmp .break
 
     .destroy:
-    mov BYTE [rel quit], BYTE 1
+    mov BYTE [rel quit], 1
     jmp .break
 
     .lmb_down:
-    mov BYTE [rel lmb_down], BYTE 1
+    mov BYTE [rel lmb_down], 1
     mov rcx, [window_handle]
     call SetCapture
 
     .mouse_move:
-    cmp BYTE [rel lmb_down], BYTE 0
+    cmp BYTE [rel lmb_down], 0
     je .break
     mov rcx, [rel draw_buffer.pixels]
     mov rdx, [lParam]
@@ -446,7 +446,7 @@ WindowProcessMessage:
     jmp .break
 
     .lmb_up:
-    mov BYTE [rel lmb_down], BYTE 0
+    mov BYTE [rel lmb_down], 0
     call ReleaseCapture
     jmp .break
 
@@ -456,13 +456,13 @@ WindowProcessMessage:
     jmp .break
 
     .key_down:
-    cmp QWORD [wParam], QWORD 0x20          ; VK_SPACE
+    cmp QWORD [wParam], 0x20          ; VK_SPACE
     jne .break
 
     xor rax, rax
     .loop:
     mov rcx, [rel saved_digits_buffer + rax]
-    mov [rel digits_buffer_pixels + rax], rcx
+    mov QWORD [rel digits_buffer_pixels + rax], rcx
     inc rax
     cmp rax, DIGITS_IMAGE_BYTE_SIZE
     jle .loop
@@ -521,14 +521,14 @@ WindowProcessMessage:
     mov r9, WINDOW_Y
 
     push 0x00CC0020                                 ; SRCCOPY
-    push QWORD 0
-    push QWORD 0
+    push 0
+    push 0
     push draw_buffer.frame_device_context
     push WINDOW_Y
 
     call BitBlt
 
-    mov QWORD [rsi + 8], QWORD DIGITS_IMAGE_Y
+    mov QWORD [rsi + 8], DIGITS_IMAGE_Y
 
     mov rcx, [rsi + 40]         ; saved rax
     mov rdx, WINDOW_Y + 10
