@@ -219,12 +219,15 @@ WinMain:
     %define window_class.lpszMenuName           rbp - 16    ; LPCWSTR, 8 bytes
     %define window_class.lpszClassName          rbp - 8     ; LPCWSTR, 8 bytes
 
-    lea [digits_buffer.pixels], [digits_buffer_pixels]
+    lea rax, [digits_buffer_pixels]
+    mov [digits_buffer.pixels], rax
 
     %define hInstance                           rbp - 80    ; HINSTANCE, 8 bytes
     mov [hInstance], rcx
 
-    lea QWORD [window_class.lpfnWndProc], [WindowProcessMessage]
+    lea rax, [WindowProcessMessage]
+    mov [window_class.lpfnWndProc], rax
+
     mov [window_class.hInstance], rcx
     
     lea rax, [rel window_name]
@@ -463,8 +466,12 @@ WindowProcessMessage:
 
     xor rax, rax
     .loop:
-    mov rcx, [rel saved_digits_buffer + rax]
-    mov QWORD [rel digits_buffer_pixels + rax], rcx
+    lea rcx, [rel saved_digits_buffer]
+    mov rcx, [rcx + rax]
+
+    lea r10, [rel digits_buffer_pixels]
+    mov [r10 + rax], rcx
+
     inc rax
     cmp rax, DIGITS_IMAGE_BYTE_SIZE
     jle .loop
@@ -483,9 +490,11 @@ WindowProcessMessage:
     xor r8, r8
     mov rax, 1
     .loop2:
-    cmp rcx, [rel output_buffer + rax]
+    lea r10, [rel output_buffer]
+    mov r10, [r10 + rax]
+    cmp rcx, r10
     jle .keep
-    mov rcx, [rel output_buffer + rax]
+    mov rcx, r10
     mov r8, rax
     .keep:
 
