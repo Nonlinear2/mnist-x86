@@ -208,17 +208,17 @@ WinMain:
     call RegisterClassW
 
 
-    mov DWORD [draw_buffer.width], DWORD WINDOW_Y
-    mov DWORD [draw_buffer.height], DWORD WINDOW_Y
+    mov DWORD [rel draw_buffer.width], DWORD WINDOW_Y
+    mov DWORD [rel draw_buffer.height], DWORD WINDOW_Y
     
     lea rax, QWORD [rel draw_buffer_pixels]
-    mov QWORD [draw_buffer.pixels], rax
+    mov QWORD [rel draw_buffer.pixels], rax
 
     mov DWORD [digits_buffer.width], DWORD DIGITS_IMAGE_X
     mov DWORD [digits_buffer.height], DWORD DIGITS_IMAGE_Y
     
     lea rax, QWORD [rel digits_buffer_pixels]
-    mov QWORD [draw_buffer.pixels], rax
+    mov QWORD [rel draw_buffer.pixels], rax
 
     lea rcx, [rel dense1_weights]
     lea rdx, [rel dense1_bias]
@@ -324,7 +324,7 @@ WinMain:
     lea rcx, [window_handle]
     call UpdateWindow
 
-    cmp [quit], BYTE 0
+    cmp [rel quit], BYTE 0
     je .return
     jmp .mainloop
 
@@ -388,26 +388,26 @@ WindowProcessMessage:
     jmp .break
 
     .destroy:
-    mov BYTE [quit], BYTE 1
+    mov BYTE [rel quit], BYTE 1
     jmp .break
 
     .lmb_down:
-    mov BYTE [lmb_down], BYTE 1
+    mov BYTE [rel lmb_down], BYTE 1
     mov rcx, [window_handle]
     call SetCapture
 
     .mouse_move:
-    cmp BYTE [lmb_down], BYTE 0
+    cmp BYTE [rel lmb_down], BYTE 0
     je .break
-    mov rcx, [draw_buffer.pixels]
+    mov rcx, [rel draw_buffer.pixels]
     mov rdx, [lParam]
     and rdx, 0x0000ffff
     mov r8, [lParam]
     shr r8, 16
     call update_on_mouse_click
 
-    mov rcx, [draw_buffer.pixels]
-    mov rdx, [mnist_array]
+    mov rcx, [rel draw_buffer.pixels]
+    mov rdx, [rel mnist_array]
     call get_draw_region_features
 
     lea rcx, [window_handle]
@@ -417,12 +417,12 @@ WindowProcessMessage:
     jmp .break
 
     .lmb_up:
-    mov BYTE [lmb_down], BYTE 0
+    mov BYTE [rel lmb_down], BYTE 0
     call ReleaseCapture
     jmp .break
 
     .rmb_down:
-    lea rcx, draw_buffer.pixels
+    lea rcx, [rel draw_buffer.pixels]
     call clear_draw_region
     jmp .break
 
@@ -432,29 +432,29 @@ WindowProcessMessage:
 
     xor rax, rax
     .loop:
-    mov rcx, [saved_digits_buffer + rax]
-    mov [digits_buffer_pixels + rax], rcx
+    mov rcx, [rel saved_digits_buffer + rax]
+    mov [rel digits_buffer_pixels + rax], rcx
     inc rax
     cmp rax, DIGITS_IMAGE_BYTE_SIZE
     jle .loop
 
-    lea rcx, [mnist_array]
-    lea rdx, [dense1_weights]
-    lea r8, [dense1_bias]
-    lea r9, [dense2_weights]
-    lea rax, [dense2_bias]
+    lea rcx, [rel mnist_array]
+    lea rdx, [rel dense1_weights]
+    lea r8, [rel dense1_bias]
+    lea r9, [rel dense2_weights]
+    lea rax, [rel dense2_bias]
     push rax
-    lea rax, [output_buffer]
+    lea rax, [rel output_buffer]
     push rax
     call run_network
 
-    mov rcx, [output_buffer]
+    mov rcx, [rel output_buffer]
     xor r8, r8
     mov rax, 1
     .loop2:
-    cmp rcx, [output_buffer + rax]
+    cmp rcx, [rel output_buffer + rax]
     jle .keep
-    mov rcx, [output_buffer + rax]
+    mov rcx, [rel output_buffer + rax]
     mov r8, rax
     .keep:
 
@@ -462,7 +462,7 @@ WindowProcessMessage:
     cmp rax, DENSE2_SIZE
     jle .loop2
 
-    lea rcx, [digits_buffer_pixels]
+    lea rcx, [rel digits_buffer_pixels]
     mov rdx, 24
     imul r8, 57
     add r8, 24
@@ -478,12 +478,12 @@ WindowProcessMessage:
     jmp .break
 
     .capture_changed:
-    mov BYTE [lmb_down], BYTE 0
+    mov BYTE [rel lmb_down], BYTE 0
     jmp .break
 
     .paint:
     lea rcx, [window_handle]
-    lea rdx, [paint]
+    lea rdx, [rel paint]
     call BeginPaint
     push rax
     mov rcx, rax
@@ -511,7 +511,7 @@ WindowProcessMessage:
     add rsi, 48
 
     lea rcx, [window_handle]
-    lea rdx, [paint]
+    lea rdx, [rel paint]
     call EndPaint
     jmp .break
 
