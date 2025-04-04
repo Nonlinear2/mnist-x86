@@ -14,6 +14,9 @@ extern SetCapture
 extern BeginPaint
 extern BitBlt
 extern EndPaint
+extern CreateCompatibleDC
+extern CreateDIBSection
+extern SelectObject
 
 extern UpdateWindow
 extern ReleaseCapture
@@ -155,7 +158,7 @@ initialize_device_context:
 
     ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
     ; bmiHeader offset is 0
-    mov [rcx], 40                   ; biSize offset is 0
+    mov [rcx], DWORD                ; biSize offset is 0
     mov [rcx + 8], rdx              ; biWidth offset is 8
     neg r8
     mov [rcx + 16], r8              ; biHeight offset is 16
@@ -170,9 +173,9 @@ initialize_device_context:
     
     mov rdx, rcx                    ; buffer
     add rdx, bitmap_info_offset     ; buffer.bitmap_info
+    mov r9, rcx                     ; buffer.pixels, offset is 0
     mov rcx, 0                      ; NULL
     mov r8, 0                       ; DIB_RGB_COLORS
-    lea r9, [buffer.pixels]
     push QWORD 0
     push QWORD 0
     call CreateDIBSection
