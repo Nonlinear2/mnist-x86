@@ -1,5 +1,7 @@
-extern WindowProcessMessage
 extern GetModuleHandleW
+extern CreateCompatibleDC
+extern CreateDIBSection
+extern SelectObject
 extern GetStockObject
 extern RegisterClassW
 extern AdjustWindowRect
@@ -7,6 +9,7 @@ extern CreateWindowExW
 extern LoadCursorW
 extern SetCursor
 extern PeekMessageW
+extern WindowProcessMessage
 extern DispatchMessageW
 extern InvalidateRect
 extern DefWindowProcW
@@ -14,9 +17,6 @@ extern SetCapture
 extern BeginPaint
 extern BitBlt
 extern EndPaint
-extern CreateCompatibleDC
-extern CreateDIBSection
-extern SelectObject
 
 extern UpdateWindow
 extern ReleaseCapture
@@ -219,10 +219,12 @@ WinMain:
     %define window_class.lpszMenuName           rbp - 16    ; LPCWSTR, 8 bytes
     %define window_class.lpszClassName          rbp - 8     ; LPCWSTR, 8 bytes
 
+    lea [digits_buffer.pixels], [digits_buffer_pixels]
+
     %define hInstance                           rbp - 80    ; HINSTANCE, 8 bytes
     mov [hInstance], rcx
 
-    mov QWORD [window_class.lpfnWndProc], QWORD WindowProcessMessage
+    lea QWORD [window_class.lpfnWndProc], [WindowProcessMessage]
     mov [window_class.hInstance], rcx
     
     lea rax, [rel window_name]
