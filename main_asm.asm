@@ -82,6 +82,8 @@ digits_buffer:
     times 44 db 0                   ; bitmap_info (BITMAPINFO, 44 bytes, 4 bytes aligned)
     times 4 db 0                    ; Padding for alignment
 
+%define bitmap_info_offset                      28
+
 %define draw_buffer.pixels                      draw_buffer + 0
 %define draw_buffer.bitmap                      draw_buffer + 8
 %define draw_buffer.frame_device_context        draw_buffer + 16
@@ -148,16 +150,40 @@ initialize_device_context:
     ; width in rdx
     ; height in r8
 
+    push rcx
+    add rcx, bitmap_info_offset
+
     ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
-    ; buffer.bitmap_info.bmiHeader.biWidth = width;
-    ; buffer.bitmap_info.bmiHeader.biHeight = -height;
-    ; buffer.bitmap_info.bmiHeader.biPlanes = 1;
-    ; buffer.bitmap_info.bmiHeader.biBitCount = 32;
-    ; buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
-    ; buffer.frame_device_context = CreateCompatibleDC(0);
+    ; bmiHeader offset is 0
+    mov [rcx], 40                   ; biSize offset is 0
+    mov [rcx + 8], rdx              ; biWidth offset is 8
+    neg r8
+    mov [rcx + 16], r8              ; biHeight offset is 16
+    mov BYTE [rcx + 24], BYTE 1     ; biPlanes offset is 24
+    mov BYTE [rcx + 32], BYTE 32    ; biBitCount offset is 32
+    mov DWORD [rcx + 40], DWORD 0   ; biCompression offset is 40, value is BI_RGB
+
+    xor rcx, rcx
+    call CreateCompatibleDC
+    mov rcx, [rsp + 8]
+    mov [rcx + 16], rax             ; frame_device_context offset is 16
     
-    ; buffer.bitmap = CreateDIBSection(NULL, &buffer.bitmap_info, DIB_RGB_COLORS, (void**)&buffer.pixels, 0, 0);
-    ; SelectObject(buffer.frame_device_context, buffer.bitmap);
+    mov rdx, rcx                    ; buffer
+    add rdx, bitmap_info_offset     ; buffer.bitmap_info
+    mov rcx, 0                      ; NULL
+    mov r8, 0                       ; DIB_RGB_COLORS
+    lea r9, [buffer.pixels]
+    push QWORD 0
+    push QWORD 0
+    call CreateDIBSection
+
+    add rsp, 16
+    pop rcx
+    add rcx, 16                     ; frame_device_context offset is 16
+    mov rdx, rax
+    call SelectObject
+
+
     ; Function epilogue
     xor rax, rax                  ; Return 0
 
