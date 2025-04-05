@@ -94,12 +94,12 @@ digits_buffer:
 %define draw_buffer.height                      draw_buffer + 24
 %define draw_buffer.bitmap_info                 draw_buffer + 28
 
-%define digits_buffer.pixels                    draw_buffer + 0
-%define digits_buffer.bitmap                    draw_buffer + 8
-%define digits_buffer.frame_device_context      draw_buffer + 16
-%define digits_buffer.width                     draw_buffer + 20
-%define digits_buffer.height                    draw_buffer + 24
-%define digits_buffer.bitmap_info               draw_buffer + 28
+%define digits_buffer.pixels                    digits_buffer + 0
+%define digits_buffer.bitmap                    digits_buffer + 8
+%define digits_buffer.frame_device_context      digits_buffer + 16
+%define digits_buffer.width                     digits_buffer + 20
+%define digits_buffer.height                    digits_buffer + 24
+%define digits_buffer.bitmap_info               digits_buffer + 28
 
 section .bss
 align 8
