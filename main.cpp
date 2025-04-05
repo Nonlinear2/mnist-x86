@@ -12,6 +12,7 @@ static bool lmb_down = false;       // left mouse button down
 //     return 0;
 // }
 
+
 struct Buffer {
     int width;
     int height;

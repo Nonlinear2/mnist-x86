@@ -133,7 +133,11 @@ main:
     call GetModuleHandleW
     mov [rel hInstance], rax
 
-    call WinMain
+    mov     rcx, [rel hInstance]  ; hInstance
+    xor     rdx, rdx              ; hPrevInstance (always NULL)
+    xor     r8, r8                ; lpCmdLine (NULL)
+    xor     r9, r9                ; nCmdShow (0)
+    call    WinMain
 
     ; Function epilogue
     xor rax, rax                  ; Return 0
