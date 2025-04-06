@@ -210,6 +210,9 @@ WinMain:
     ; pCmdLine in r8
     ; nCmdShow in r9
 
+    lea rax, [digits_buffer_pixels]
+    mov [digits_buffer.pixels], rax
+
     %define window_class                        rbp - 72    ; WNDCLASS structure, 72 bytes
 
     %define window_class.style                  rbp - 72    ; UINT, 4 bytes + 4 padding bytes
@@ -223,21 +226,27 @@ WinMain:
     %define window_class.lpszMenuName           rbp - 16    ; LPCWSTR, 8 bytes
     %define window_class.lpszClassName          rbp - 8     ; LPCWSTR, 8 bytes
 
-    lea rax, [digits_buffer_pixels]
-    mov [digits_buffer.pixels], rax
+    mov DWORD [window_class.style], 0
 
     lea rax, [WindowProcessMessage]
     mov [window_class.lpfnWndProc], rax
 
+    mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
+
     mov [window_class.hInstance], rcx
-    
-    lea rax, [rel window_name]
-    mov [window_class.lpszClassName], rax
+
+    mov QWORD [window_class.hIcon], 0
+    mov QWORD [window_class.hCursor], 0
 
     ; window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     mov QWORD rcx, 4                   ; BLACK_BRUSH
     call GetStockObject
     mov [window_class.hbrBackground], rax
+
+    mov QWORD [window_class.lpszMenuName], 0
+
+    lea rax, [rel window_name]
+    mov [window_class.lpszClassName], rax
 
     lea rcx, [window_class]
     call RegisterClassW
