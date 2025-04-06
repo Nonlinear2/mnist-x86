@@ -203,8 +203,8 @@ WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32 + 120                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
-        
+    sub     rsp, 152                                 ; Reserve 32 bytes of shadow space + 120 bytes for local variables
+
     ; hInstance in rcx
     ; hPrevInstance in rdx
     ; pCmdLine in r8
@@ -226,9 +226,6 @@ WinMain:
     lea rax, [digits_buffer_pixels]
     mov [digits_buffer.pixels], rax
 
-    %define hInstance                           rbp - 80    ; HINSTANCE, 8 bytes
-    mov [hInstance], rcx
-
     lea rax, [WindowProcessMessage]
     mov [window_class.lpfnWndProc], rax
 
@@ -238,7 +235,7 @@ WinMain:
     mov [window_class.lpszClassName], rax
 
     ; window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    mov rcx, QWORD 4                   ; BLACK_BRUSH
+    mov QWORD rcx, 4                   ; BLACK_BRUSH
     call GetStockObject
     mov [window_class.hbrBackground], rax
 
@@ -281,16 +278,17 @@ WinMain:
     lea rcx, [rel saved_digits_buffer]
     call load_digit_image
 
-    %define window_rect                     window_class - 32
-    %define window_rect.left                window_class - 32
-    %define window_rect.top                 window_class - 24
-    %define window_rect.right               window_class - 16
-    %define window_rect.bottom              window_class - 8
+    %define window_rect                     window_class - 16
 
-    mov QWORD [window_rect.left], 0
-    mov QWORD [window_rect.top], 0
-    mov QWORD [window_rect.right], WINDOW_X
-    mov QWORD [window_rect.bottom], WINDOW_Y
+    %define window_rect.left                window_class - 16           LONG, 4 bytes
+    %define window_rect.top                 window_class - 12           LONG, 4 bytes
+    %define window_rect.right               window_class - 8            LONG, 4 bytes
+    %define window_rect.bottom              window_class - 4            LONG, 4 bytes
+
+    mov DWORD [window_rect.left], 0
+    mov DWORD [window_rect.top], 0
+    mov DWORD [window_rect.right], WINDOW_X
+    mov DWORD [window_rect.bottom], WINDOW_Y
 
     lea rcx, [window_rect]
     mov rdx, 0xCA0000                       ; WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
@@ -303,7 +301,7 @@ WinMain:
     mov r9, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
     push 440
     push 0                                  ; NULL
-    lea rax, [hInstance]
+    lea rax, [rel hInstance]
     push rax
     push 0                                  ; NULL
     push 0                                  ; NULL

@@ -7,8 +7,7 @@ static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
 // int main() {
-//     BITMAPINFO bitmap_info = {};
-//     std::cout << sizeof(bitmap_info.bmiHeader) << std::endl;
+//     std::cout << sizeof(LONG) << std::endl;
 //     return 0;
 // }
 
