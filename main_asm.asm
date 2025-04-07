@@ -151,13 +151,15 @@ initialize_device_context:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    sub     rsp, 32 + 16                                ; Reserve 32 bytes of shadow space + 16 bytes for local variables and 16 byte alignement
 
     ; buffer in rcx
     ; width in rdx
     ; height in r8
 
-    push rcx
+    %define buffer                              rbp - 8
+
+    mov QWORD [buffer], rcx
     add rcx, bitmap_info_offset
 
     ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
@@ -182,11 +184,11 @@ initialize_device_context:
     mov r8, 0                       ; DIB_RGB_COLORS
     push QWORD 0
     push QWORD 0
+    ; ! maintains a 16 byte aligned stack
     call CreateDIBSection
+    add rsp, 16 ; clear the parameters
 
-    add rsp, 16
-    pop rcx
-    add rcx, 16                     ; frame_device_context offset is 16
+    mov rcx, [buffer + 16]          ; frame_device_context offset is 16
     mov rdx, rax
     call SelectObject
 
@@ -203,7 +205,7 @@ WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 152 + 8                                 ; Reserve 32 bytes of shadow space + 120 bytes for local variables + 8 bytes for 16 byte alignement
+    sub     rsp, 160                                 ; Reserve 32 bytes of shadow space + 128 bytes for local variables + 0 bytes for 16 byte alignement
 
     ; hInstance in rcx
     ; hPrevInstance in rdx
@@ -321,9 +323,10 @@ WinMain:
     sub rax, [window_rect.left]
     push rax
     push 120
+    ; ! maintains a 16 byte aligned stack
     call CreateWindowExW
 
-    add rsi, 56
+    add rsp, 64
 
     %define window_handle                       window_rect - 8
     mov [window_handle], rax
@@ -348,10 +351,8 @@ WinMain:
     mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
-    push 0x0001                             ; PM_REMOVE
+    mov QWORD [message - 8], 0x0001               ; PM_REMOVE
     call PeekMessageW
-
-    add rsi, 8
 
     cmp rax, 0
     je .break_while
@@ -384,17 +385,17 @@ WinMain:
 WindowProcessMessage:
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space + ... bytes for local variables
+    sub     rsp, 64                                 ; Reserve 32 bytes of shadow space + 64 bytes for local variables
     
-    push r9
-    push r8
-    push rdx
-    push rcx
-
     %define window_handle                           rbp - 32
     %define message                                 rbp - 24
     %define wParam                                  rbp - 16
     %define lParam                                  rbp - 8
+
+    mov QWORD [window_handle], rcx
+    mov QWORD [message], rdx
+    mov QWORD [wParam], r8
+    mov QWORD [lParam], r9
 
     ; switch
     cmp QWORD [message], 0x0012               ; WM_QUIT
@@ -424,12 +425,11 @@ WindowProcessMessage:
     cmp QWORD [message], 0x000F               ; WM_PAINT
     je .paint
 
-    mov rcx, [window_handle]
-    mov rdx, [message]
-    mov r8, [wParam]
-    mov r9, [lParam]
+    ; mov rcx, [window_handle]
+    ; mov rdx, [message]
+    ; mov r8, [wParam]
+    ; mov r9, [lParam]
     call DefWindowProcW
-
     jmp .break
 
     .destroy:
