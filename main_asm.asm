@@ -539,7 +539,7 @@ WindowProcessMessage:
     lea rax, [rel output_buffer]
     mov QWORD [rsp + 6 * 8], rax
     call run_network
-    add rsp, 16
+    add rsp, 16                                ; clear parameter space
 
     mov rcx, [rel output_buffer]
     xor r8, r8
@@ -582,11 +582,13 @@ WindowProcessMessage:
     lea rdx, [rel paint]
     call BeginPaint
 
+    %define device_context                          window_handle - 8
+    mov [device_context], rax
+
     ; call BitBlt twice
 
     sub rsp, 5 * 8                                  ; 5 stack parameters, rsp is still 16 byte aligned
-    push rax
-    mov rcx, rax
+    mov rcx, [device_context]
     xor rdx, rdx
     xor r8, r8
     mov r9, WINDOW_Y
@@ -598,14 +600,18 @@ WindowProcessMessage:
     mov QWORD [rsp + 9 * 8], 0x00CC0020             ; SRCCOPY
     call BitBlt
 
-    mov QWORD [rsp + 5 * 8], DIGITS_IMAGE_Y
-
-    mov rcx, [rsp + 40]         ; saved rax
+    mov rcx, [device_context]
     mov rdx, WINDOW_Y + 10
     xor r8, r8
     mov r9, DIGITS_IMAGE_X
 
+    mov QWORD [rsp + 5 * 8], DIGITS_IMAGE_Y
+    mov QWORD [rsp + 6 * 8], draw_buffer.frame_device_context
+    mov QWORD [rsp + 7 * 8], 0
+    mov QWORD [rsp + 8 * 8], 0
+    mov QWORD [rsp + 9 * 8], 0x00CC0020             ; SRCCOPY
     call BitBlt
+
     sub rsp, 5 * 8                                  ; clear parameter space
 
 
