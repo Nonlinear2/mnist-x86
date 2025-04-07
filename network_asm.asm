@@ -94,7 +94,7 @@ run_network:
     push    rbp
     mov     rbp, rsp
     ; Reserve 32 bytes of shadow space + sizeof(int)*DENSE1_SIZE + sizeof(layer_1_output)
-    %define reserved_space  DENSE1_BYTE_SIZE + 32 + 8
+    %define reserved_space 32 + DENSE1_BYTE_SIZE + 8
     sub     rsp, reserved_space                                 
 
 

@@ -151,7 +151,8 @@ initialize_device_context:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32 + 16                                ; Reserve 32 bytes of shadow space + 16 bytes for local variables and 16 byte alignement
+    ; Reserve 32 bytes of shadow space + 24 bytes for local variables + 8 bytes for 16 byte alignement
+    sub     rsp, 64
 
     ; buffer in rcx
     ; width in rdx
@@ -174,19 +175,17 @@ initialize_device_context:
 
     xor rcx, rcx
     call CreateCompatibleDC
-    mov rcx, [rsp + 8]
+
+    mov rcx, [buffer]
     mov [rcx + 16], rax             ; frame_device_context offset is 16
-    
-    mov rdx, rcx                    ; buffer
-    add rdx, bitmap_info_offset     ; buffer.bitmap_info
+
+    mov rdx, [rcx + bitmap_info_offset]     ; buffer.bitmap_info
     mov r9, rcx                     ; buffer.pixels, offset is 0
     mov rcx, 0                      ; NULL
     mov r8, 0                       ; DIB_RGB_COLORS
-    push QWORD 0
-    push QWORD 0
-    ; ! maintains a 16 byte aligned stack
+    mov QWORD [rbp - 40], 0
+    mov QWORD [rbp - 48], 0
     call CreateDIBSection
-    add rsp, 16 ; clear the parameters
 
     mov rcx, [buffer + 16]          ; frame_device_context offset is 16
     mov rdx, rax
@@ -205,7 +204,8 @@ WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 160                                 ; Reserve 32 bytes of shadow space + 128 bytes for local variables + 0 bytes for 16 byte alignement
+    ; 32 bytes of shadow space + 192 bytes for local variables + 0 bytes for 16 byte alignement
+    sub     rsp, 224                                 
 
     ; hInstance in rcx
     ; hPrevInstance in rdx
@@ -227,6 +227,11 @@ WinMain:
     %define window_class.hbrBackground          rbp - 24    ; HBRUSH, 8 bytes
     %define window_class.lpszMenuName           rbp - 16    ; LPCWSTR, 8 bytes
     %define window_class.lpszClassName          rbp - 8     ; LPCWSTR, 8 bytes
+
+
+    ; =======================
+    ; initialize window_class
+    ; =======================
 
     mov DWORD [window_class.style], 0
 
@@ -250,9 +255,13 @@ WinMain:
     lea rax, [rel window_name]
     mov [window_class.lpszClassName], rax
 
+    ; register class
     lea rcx, [window_class]
     call RegisterClassW
 
+    ; ==================
+    ; initialize buffers
+    ; ==================
 
     mov DWORD [rel draw_buffer.width], WINDOW_Y
     mov DWORD [rel draw_buffer.height], WINDOW_Y
@@ -266,17 +275,14 @@ WinMain:
     lea rax, [rel digits_buffer_pixels]
     mov QWORD [rel draw_buffer.pixels], rax
 
-    lea rcx, [rel dense1_weights]
-    lea rdx, [rel dense1_bias]
-    lea r8, [rel dense2_weights]
-    lea r9, [rel dense2_bias]
-    call load_weights
+    ; initialize_device_context for draw_buffer
 
-    
     lea rcx, [rel draw_buffer]
     mov rdx, WINDOW_X
     mov r8, WINDOW_Y
     call initialize_device_context
+
+    ; initialize_device_context for draw_buffer
 
     lea rcx, [rel digits_buffer]
     mov rdx, DIGITS_IMAGE_X
@@ -288,6 +294,16 @@ WinMain:
 
     lea rcx, [rel saved_digits_buffer]
     call load_digit_image
+
+    ; ===========================
+    ; load neural network weights
+    ; ===========================
+
+    lea rcx, [rel dense1_weights]
+    lea rdx, [rel dense1_bias]
+    lea r8, [rel dense2_weights]
+    lea r9, [rel dense2_bias]
+    call load_weights
 
     %define window_rect                     window_class - 16
 
@@ -303,30 +319,37 @@ WinMain:
 
     lea rcx, [window_rect]
     mov rdx, 0xCA0000                       ; WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    xor r8, r8
+    xor r8, r8                              ; FALSE
     call AdjustWindowRect
 
-    xor rcx, rcx                            ; dwExStyle = 0 
+    ; =============
+    ; create window
+    ; =============
+
+    lea rcx, [rel window_name]
     lea rdx, [rel window_name]
-    lea r8, [rel window_name]
-    mov r9, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    push 440
-    push 0                                  ; NULL
-    lea rax, [rel hInstance]
-    push rax
-    push 0                                  ; NULL
-    push 0                                  ; NULL
-    mov rax, [window_rect.bottom]
-    sub rax, [window_rect.top]
-    push rax
+    mov r8, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
+    mov r9, 440
+
+    mov QWORD [rsp + 5 * 8], 120
+
     mov rax, [window_rect.right]
     sub rax, [window_rect.left]
-    push rax
-    push 120
-    ; ! maintains a 16 byte aligned stack
+    mov QWORD [rsp + 6 * 8], rax
+
+    mov rax, [window_rect.bottom]
+    sub rax, [window_rect.top]
+    mov QWORD [rsp + 7 * 8], rax
+
+    mov QWORD [rsp + 8 * 8], 0              ; NULL
+    mov QWORD [rsp + 9 * 8], 0              ; NULL
+
+    lea rax, [rel hInstance]
+    mov QWORD [rsp + 10 * 8], rax
+
+    mov QWORD [rsp + 11 * 8], 0              ; NULL
     call CreateWindowExW
 
-    add rsp, 64
 
     %define window_handle                       window_rect - 8
     mov [window_handle], rax
@@ -385,7 +408,7 @@ WinMain:
 WindowProcessMessage:
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 64                                 ; Reserve 32 bytes of shadow space + 64 bytes for local variables
+    sub     rsp, 80                                 ; Reserve 32 bytes of shadow space + 48 bytes for local variables
     
     %define window_handle                           rbp - 32
     %define message                                 rbp - 24
