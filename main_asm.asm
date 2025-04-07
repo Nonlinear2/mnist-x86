@@ -582,7 +582,7 @@ WindowProcessMessage:
     lea rdx, [rel paint]
     call BeginPaint
 
-    ; call BitBlt
+    ; call BitBlt twice
 
     sub rsp, 5 * 8                                  ; 5 stack parameters, rsp is still 16 byte aligned
     push rax
@@ -596,11 +596,9 @@ WindowProcessMessage:
     mov QWORD [rsp + 7 * 8], 0
     mov QWORD [rsp + 8 * 8], 0
     mov QWORD [rsp + 9 * 8], 0x00CC0020             ; SRCCOPY
-
     call BitBlt
-    sub rsp, 5 * 8                                  ; clear parameter space
 
-    mov QWORD [rsp + 8], DIGITS_IMAGE_Y
+    mov QWORD [rsp + 5 * 8], DIGITS_IMAGE_Y
 
     mov rcx, [rsp + 40]         ; saved rax
     mov rdx, WINDOW_Y + 10
@@ -608,8 +606,8 @@ WindowProcessMessage:
     mov r9, DIGITS_IMAGE_X
 
     call BitBlt
+    sub rsp, 5 * 8                                  ; clear parameter space
 
-    add rsi, 48
 
     lea rcx, [window_handle]
     lea rdx, [rel paint]
