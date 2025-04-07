@@ -6,10 +6,10 @@
 static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
-// int main() {
-//     std::cout << sizeof(LONG) << std::endl;
-//     return 0;
-// }
+int main() {
+    std::cout << sizeof(LPCWSTR) << std::endl;
+    return 0;
+}
 
 
 struct Buffer {

@@ -203,7 +203,7 @@ WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 152                                 ; Reserve 32 bytes of shadow space + 120 bytes for local variables
+    sub     rsp, 152 + 8                                 ; Reserve 32 bytes of shadow space + 120 bytes for local variables + 8 bytes for 16 byte alignement
 
     ; hInstance in rcx
     ; hPrevInstance in rdx
@@ -213,7 +213,7 @@ WinMain:
     lea rax, [digits_buffer_pixels]
     mov [digits_buffer.pixels], rax
 
-    %define window_class                        rbp - 72    ; WNDCLASS structure, 72 bytes
+    %define window_class                        rbp - 72    ; WNDCLASSW structure, 72 bytes, aligned on an 8 byte boundary
 
     %define window_class.style                  rbp - 72    ; UINT, 4 bytes + 4 padding bytes
     %define window_class.lpfnWndProc            rbp - 64    ; WNDPROC, 8 bytes
@@ -289,10 +289,10 @@ WinMain:
 
     %define window_rect                     window_class - 16
 
-    %define window_rect.left                window_class - 16           LONG, 4 bytes
-    %define window_rect.top                 window_class - 12           LONG, 4 bytes
-    %define window_rect.right               window_class - 8            LONG, 4 bytes
-    %define window_rect.bottom              window_class - 4            LONG, 4 bytes
+    %define window_rect.left                window_class - 16           ; LONG, 4 bytes
+    %define window_rect.top                 window_class - 12           ; LONG, 4 bytes
+    %define window_rect.right               window_class - 8            ; LONG, 4 bytes
+    %define window_rect.bottom              window_class - 4            ; LONG, 4 bytes
 
     mov DWORD [window_rect.left], 0
     mov DWORD [window_rect.top], 0
