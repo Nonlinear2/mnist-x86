@@ -185,10 +185,11 @@ initialize_device_context:
     mov rcx, [buffer]
     mov [rcx + 16], rax             ; frame_device_context offset is 16
 
+    ; =====================
     ; call CreateDIBSection
+    ; =====================
 
-    sub rsp, 16                     ; 2 stack parameters, rsp is still 16 byte aligned
-
+    sub rsp, 2 * 8                  ; 2 stack parameters, rsp is still 16 byte aligned
     mov rdx, [rcx + bitmap_info_offset]     ; buffer.bitmap_info
     mov r9, rcx                     ; buffer.pixels, offset is 0
     mov rcx, 0                      ; NULL
@@ -301,6 +302,8 @@ WinMain:
     mov r8, DIGITS_IMAGE_Y
     call initialize_device_context
 
+    ; load digit image
+
     mov rcx, [digits_buffer.pixels]
     call load_digit_image
 
@@ -316,6 +319,10 @@ WinMain:
     lea r8, [rel dense2_weights]
     lea r9, [rel dense2_bias]
     call load_weights
+
+    ; ==================
+    ; adjust window size
+    ; ==================
 
     %define window_rect                     window_class - 16
 
@@ -364,21 +371,23 @@ WinMain:
     call CreateWindowExW
     add rsp, 64                             ; clear the parameter space
 
-
-
     %define window_handle                       window_rect - 8
     mov [window_handle], rax
 
-    cmp rax, 0                              ; NULL
-    je .crash
+    ; ==========
+    ; set cursor
+    ; ==========
 
     mov rcx, 0                              ; NULL
     mov rdx, 32512                          ; IDC_ARROW
-
     call LoadCursorW
-    mov rcx, rax
 
+    mov rcx, rax
     call SetCursor
+
+    ; ===============
+    ; == main loop ==
+    ; ===============
 
     %define message                         window_handle - 8 
     .mainloop:
@@ -389,7 +398,7 @@ WinMain:
     mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
-    mov QWORD [message - 8], 0x0001               ; PM_REMOVE
+    mov QWORD [message - 8], 0x0001         ; PM_REMOVE
     call PeekMessageW
 
     cmp rax, 0
@@ -415,7 +424,6 @@ WinMain:
     .return:
         ; Function epilogue
     xor rax, rax                  ; Return 0
-    .crash:
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
