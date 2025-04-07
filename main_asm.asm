@@ -423,12 +423,14 @@ WinMain:
 WindowProcessMessage:
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 80                                 ; Reserve 32 bytes of shadow space + 48 bytes for local variables
+    ; Reserve 32 bytes of shadow space + 8 bytes for local variables + 8 bytes for 16 byte alignement
+    sub     rsp, 48                               
     
-    %define window_handle                           rbp - 32
-    %define message                                 rbp - 24
-    %define wParam                                  rbp - 16
-    %define lParam                                  rbp - 8
+    ; use shadow space, 
+    %define window_handle                           rbp + 2*8           ; rcx home
+    %define message                                 rbp + 3*8           ; rdx home
+    %define wParam                                  rbp + 4*8           ; r8 home
+    %define lParam                                  rbp + 5*8           ; r9 home
 
     mov QWORD [window_handle], rcx
     mov QWORD [message], rdx
@@ -582,7 +584,7 @@ WindowProcessMessage:
     lea rdx, [rel paint]
     call BeginPaint
 
-    %define device_context                          window_handle - 8
+    %define device_context                          rbp - 8
     mov [device_context], rax
 
     ; call BitBlt twice
