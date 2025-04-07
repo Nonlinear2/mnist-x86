@@ -194,8 +194,8 @@ initialize_device_context:
     mov r9, rcx                     ; buffer.pixels, offset is 0
     mov rcx, 0                      ; NULL
     mov r8, 0                       ; DIB_RGB_COLORS
-    mov QWORD [rbp - 5 * 8], 0
-    mov QWORD [rbp - 6 * 8], 0
+    mov QWORD [rsp + 5 * 8], 0
+    mov QWORD [rsp + 6 * 8], 0
     call CreateDIBSection
     add rsp, 16                     ; clear the parameter space
 
