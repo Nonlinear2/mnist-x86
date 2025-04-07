@@ -161,6 +161,11 @@ initialize_device_context:
     %define buffer                              rbp - 8
 
     mov QWORD [buffer], rcx
+
+    ; =============================
+    ; initialize buffer.bitmap_info
+    ; =============================
+
     add rcx, bitmap_info_offset
 
     ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
@@ -169,23 +174,30 @@ initialize_device_context:
     mov DWORD [rcx + 4], edx        ; biWidth offset is 4
     neg r8d
     mov DWORD [rcx + 8], r8d        ; biHeight offset is 8
-    mov WORD [rcx + 24], 1     ; biPlanes offset is 12
-    mov WORD [rcx + 32], 32    ; biBitCount offset is 14
-    mov DWORD [rcx + 40], 0   ; biCompression offset is 16, value is BI_RGB
+    mov WORD [rcx + 24], 1          ; biPlanes offset is 12
+    mov WORD [rcx + 32], 32         ; biBitCount offset is 14
+    mov DWORD [rcx + 40], 0         ; biCompression offset is 16, value is BI_RGB
 
-    xor rcx, rcx
-    call CreateCompatibleDC
+
+    xor rcx, rcx                    ; single argument, 0
+    call CreateCompatibleDC         
 
     mov rcx, [buffer]
     mov [rcx + 16], rax             ; frame_device_context offset is 16
+
+    ; call CreateDIBSection
+
+    sub rsp, 16                     ; 2 stack parameters, rsp is still 16 byte aligned
 
     mov rdx, [rcx + bitmap_info_offset]     ; buffer.bitmap_info
     mov r9, rcx                     ; buffer.pixels, offset is 0
     mov rcx, 0                      ; NULL
     mov r8, 0                       ; DIB_RGB_COLORS
-    mov QWORD [rbp - 40], 0
-    mov QWORD [rbp - 48], 0
+    mov QWORD [rbp - 5 * 8], 0
+    mov QWORD [rbp - 6 * 8], 0
     call CreateDIBSection
+    add rsp, 16                     ; clear the parameter space
+
 
     mov rcx, [buffer + 16]          ; frame_device_context offset is 16
     mov rdx, rax
@@ -326,6 +338,7 @@ WinMain:
     ; create window
     ; =============
 
+    sub rsp, 64                             ; 8 stack parameters, rsp is still 16 byte aligned
     lea rcx, [rel window_name]
     lea rdx, [rel window_name]
     mov r8, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
@@ -347,8 +360,10 @@ WinMain:
     lea rax, [rel hInstance]
     mov QWORD [rsp + 10 * 8], rax
 
-    mov QWORD [rsp + 11 * 8], 0              ; NULL
+    mov QWORD [rsp + 11 * 8], 0             ; NULL
     call CreateWindowExW
+    add rsp, 64                             ; clear the parameter space
+
 
 
     %define window_handle                       window_rect - 8
@@ -510,15 +525,21 @@ WindowProcessMessage:
     cmp rax, DIGITS_IMAGE_BYTE_SIZE
     jle .loop
 
+    ; ================
+    ; call run_network
+    ; ================
+
+    sub rsp, 2 * 8                             ; 2 stack parameters, rsp is still 16 byte aligned
     lea rcx, [rel mnist_array]
     lea rdx, [rel dense1_weights]
     lea r8, [rel dense1_bias]
     lea r9, [rel dense2_weights]
     lea rax, [rel dense2_bias]
-    push rax
+    mov QWORD [rsp + 5 * 8], rax
     lea rax, [rel output_buffer]
-    push rax
+    mov QWORD [rsp + 6 * 8], rax
     call run_network
+    add rsp, 16
 
     mov rcx, [rel output_buffer]
     xor r8, r8
@@ -556,26 +577,32 @@ WindowProcessMessage:
     jmp .break
 
     .paint:
+
     lea rcx, [window_handle]
     lea rdx, [rel paint]
     call BeginPaint
+
+    ; call BitBlt
+
+    sub rsp, 5 * 8                                  ; 5 stack parameters, rsp is still 16 byte aligned
     push rax
     mov rcx, rax
     xor rdx, rdx
     xor r8, r8
     mov r9, WINDOW_Y
 
-    push 0x00CC0020                                 ; SRCCOPY
-    push 0
-    push 0
-    push draw_buffer.frame_device_context
-    push WINDOW_Y
+    mov QWORD [rsp + 5 * 8], WINDOW_Y
+    mov QWORD [rsp + 6 * 8], draw_buffer.frame_device_context
+    mov QWORD [rsp + 7 * 8], 0
+    mov QWORD [rsp + 8 * 8], 0
+    mov QWORD [rsp + 9 * 8], 0x00CC0020             ; SRCCOPY
 
     call BitBlt
+    sub rsp, 5 * 8                                  ; clear parameter space
 
-    mov QWORD [rsi + 8], DIGITS_IMAGE_Y
+    mov QWORD [rsp + 8], DIGITS_IMAGE_Y
 
-    mov rcx, [rsi + 40]         ; saved rax
+    mov rcx, [rsp + 40]         ; saved rax
     mov rdx, WINDOW_Y + 10
     xor r8, r8
     mov r9, DIGITS_IMAGE_X
