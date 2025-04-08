@@ -6,10 +6,10 @@
 static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
-int main() {
-    std::cout << sizeof(LPCWSTR) << std::endl;
-    return 0;
-}
+// int main() {
+//     std::cout << sizeof(MSG) << std::endl;
+//     return 0;
+// }
 
 
 struct Buffer {
@@ -100,8 +100,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
     SetCursor(LoadCursor(NULL, IDC_ARROW));
 
 
+    static MSG message;
     while(!quit){
-        static MSG message = { 0 };
         while(PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) { DispatchMessage(&message); }
         
         InvalidateRect(window_handle, NULL, FALSE);

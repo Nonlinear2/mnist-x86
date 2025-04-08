@@ -389,9 +389,17 @@ WinMain:
     ; == main loop ==
     ; ===============
 
-    %define message                         window_handle - 8 
+    %define msg                             window_handle - 48             ; MSG structure, 48 bytes, aligned on an 8 byte boundary
+    %define msg.hwnd                        window_handle - 48             ; 8 bytes
+    %define msg.message                     window_handle - 40             ; 4 bytes + 4 padding bytes
+    %define msg.wParam                      window_handle - 32             ; 8 bytes
+    %define msg.lParam                      window_handle - 24             ; 8 bytes
+    %define msg.time                        window_handle - 16             ; 4 bytes
+    %define msg.py.x                        window_handle - 12             ; 4 bytes
+    %define msg.pt.y                        window_handle - 8              ; 4 bytes + 4 padding bytes
+
     .mainloop:
-    mov QWORD [message], 0
+    mov QWORD [msg], 0
 
     .while:
     lea rcx, [message]
