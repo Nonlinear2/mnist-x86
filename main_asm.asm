@@ -353,23 +353,23 @@ WinMain:
     mov r8, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
     mov r9, 440
 
-    mov QWORD [rsp + 5 * 8], 120
+    mov QWORD [rsp + 4 * 8], 120
 
     mov rax, [window_rect.right]
     sub rax, [window_rect.left]
-    mov QWORD [rsp + 6 * 8], rax
+    mov QWORD [rsp + 5 * 8], rax
 
     mov rax, [window_rect.bottom]
     sub rax, [window_rect.top]
-    mov QWORD [rsp + 7 * 8], rax
+    mov QWORD [rsp + 6 * 8], rax
 
+    mov QWORD [rsp + 7 * 8], 0              ; NULL
     mov QWORD [rsp + 8 * 8], 0              ; NULL
-    mov QWORD [rsp + 9 * 8], 0              ; NULL
 
     lea rax, [rel hInstance]
-    mov QWORD [rsp + 10 * 8], rax
+    mov QWORD [rsp + 9 * 8], rax
 
-    mov QWORD [rsp + 11 * 8], 0             ; NULL
+    mov QWORD [rsp + 10 * 8], 0             ; NULL
     call CreateWindowExW
     add rsp, 64                             ; clear the parameter space
 
@@ -408,7 +408,7 @@ WinMain:
     mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
-    mov QWORD [rsp - 5 * 8], 0x0001         ; PM_REMOVE
+    mov QWORD [rsp - 4 * 8], 0x0001         ; PM_REMOVE
     call PeekMessageW
 
     cmp eax, 0
@@ -556,9 +556,9 @@ WindowProcessMessage:
     lea r8, [rel dense1_bias]
     lea r9, [rel dense2_weights]
     lea rax, [rel dense2_bias]
-    mov QWORD [rsp + 5 * 8], rax
+    mov QWORD [rsp + 4 * 8], rax
     lea rax, [rel output_buffer]
-    mov QWORD [rsp + 6 * 8], rax
+    mov QWORD [rsp + 5 * 8], rax
     call run_network
     add rsp, 16                                ; clear parameter space
 
@@ -614,11 +614,11 @@ WindowProcessMessage:
     xor r8, r8
     mov r9, WINDOW_Y
 
-    mov QWORD [rsp + 5 * 8], WINDOW_Y
-    mov QWORD [rsp + 6 * 8], draw_buffer.frame_device_context
+    mov QWORD [rsp + 4 * 8], WINDOW_Y
+    mov QWORD [rsp + 5 * 8], draw_buffer.frame_device_context
+    mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
-    mov QWORD [rsp + 8 * 8], 0
-    mov QWORD [rsp + 9 * 8], 0x00CC0020             ; SRCCOPY
+    mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
     call BitBlt
 
     mov rcx, [device_context]
@@ -626,11 +626,11 @@ WindowProcessMessage:
     xor r8, r8
     mov r9, DIGITS_IMAGE_X
 
-    mov QWORD [rsp + 5 * 8], DIGITS_IMAGE_Y
-    mov QWORD [rsp + 6 * 8], draw_buffer.frame_device_context
+    mov QWORD [rsp + 4 * 8], DIGITS_IMAGE_Y
+    mov QWORD [rsp + 5 * 8], draw_buffer.frame_device_context
+    mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
-    mov QWORD [rsp + 8 * 8], 0
-    mov QWORD [rsp + 9 * 8], 0x00CC0020             ; SRCCOPY
+    mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
     call BitBlt
 
     sub rsp, 5 * 8                                  ; clear parameter space
