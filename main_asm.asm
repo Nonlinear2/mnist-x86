@@ -126,7 +126,7 @@ main:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
-    
+
     xor rcx, rcx
     call GetModuleHandleW
     mov [rel hInstance], rax
@@ -188,7 +188,7 @@ initialize_device_context:
     ; call CreateDIBSection
     ; =====================
 
-    sub rsp, 32 + 16                          ; 32 bytes of shadow space + 2 stack parameters, rsp is still 16 byte aligned
+    sub rsp, 2 * 8                          ; 2 stack parameters, rsp remains 16 byte aligned
     mov rcx, 0                              ; NULL
     lea rdx, [r10 + bitmap_info_offset]     ; &buffer.bitmap_info
     xor r8, r8                              ; DIB_RGB_COLORS
@@ -196,7 +196,7 @@ initialize_device_context:
     mov QWORD [rsp + 4 * 8], 0
     mov QWORD [rsp + 5 * 8], 0
     call CreateDIBSection
-    add rsp, 48                     ; clear the parameter space
+    add rsp, 16                             ; clear the parameter space
 
     mov r10, [buffer]
     mov [r10 + 8], rax           ; bitmap offset is 8
