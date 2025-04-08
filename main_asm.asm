@@ -159,7 +159,6 @@ initialize_device_context:
     ; height in r8
 
     %define buffer                              rbp + 2*8           ; rcx home
-    %define &buffer                             rbp - 8
 
     mov QWORD [buffer], rcx
 
@@ -186,17 +185,15 @@ initialize_device_context:
     mov r10, [buffer]
     mov [r10 + 16], rax             ; frame_device_context offset is 16
 
-    mov QWORD [&buffer], r10
-
     ; =====================
     ; call CreateDIBSection
     ; =====================
 
     sub rsp, 2 * 8                  ; 2 stack parameters, rsp is still 16 byte aligned
     mov rcx, 0                      ; NULL
-    mov rdx, [r10 + bitmap_info_offset]     ; buffer.bitmap_info
+    lea rdx, [r10 + bitmap_info_offset]     ; buffer.bitmap_info
     mov r8, 0                       ; DIB_RGB_COLORS
-    mov r9, [&buffer]               ; &buffer.pixels, offset is 0
+    lea r9, [buffer]                ; &buffer.pixels, offset is 0
     mov QWORD [rsp + 5 * 8], 0
     mov QWORD [rsp + 6 * 8], 0
     call CreateDIBSection
@@ -421,7 +418,7 @@ WinMain:
     call UpdateWindow
 
     cmp BYTE [rel quit], 0
-    je .return
+    jne .return
     jmp .mainloop
 
     .return:
