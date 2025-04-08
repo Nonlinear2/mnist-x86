@@ -12,15 +12,6 @@ static bool lmb_down = false;       // left mouse button down
 // }
 
 
-struct Buffer {
-    int width;
-    int height;
-    uint8_t* pixels;
-    BITMAPINFO bitmap_info = {};
-    HBITMAP bitmap = 0;
-    HDC frame_device_context = 0;
-};
-
 LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 
 struct Buffer draw_buffer;
@@ -40,21 +31,18 @@ int dense2_bias[DENSE2_SIZE] = {};
 
 int output_buffer[DENSE2_SIZE] = {};
 
-PAINTSTRUCT paint;
-HDC device_context;
-
-void initialize_device_context(Buffer& buffer, int width, int height){
-    buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
-    buffer.bitmap_info.bmiHeader.biWidth = width;
-    buffer.bitmap_info.bmiHeader.biHeight = -height;
-    buffer.bitmap_info.bmiHeader.biPlanes = 1;
-    buffer.bitmap_info.bmiHeader.biBitCount = 32;
-    buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
-    buffer.frame_device_context = CreateCompatibleDC(0);
+// void initialize_device_context(Buffer& buffer, int width, int height){
+//     buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
+//     buffer.bitmap_info.bmiHeader.biWidth = width;
+//     buffer.bitmap_info.bmiHeader.biHeight = -height;
+//     buffer.bitmap_info.bmiHeader.biPlanes = 1;
+//     buffer.bitmap_info.bmiHeader.biBitCount = 32;
+//     buffer.bitmap_info.bmiHeader.biCompression = BI_RGB;
+//     buffer.frame_device_context = CreateCompatibleDC(0);
     
-    buffer.bitmap = CreateDIBSection(NULL, &buffer.bitmap_info, DIB_RGB_COLORS, (void**)&buffer.pixels, 0, 0);
-    SelectObject(buffer.frame_device_context, buffer.bitmap);
-}
+//     buffer.bitmap = CreateDIBSection(NULL, &buffer.bitmap_info, DIB_RGB_COLORS, (void**)&buffer.pixels, 0, 0);
+//     SelectObject(buffer.frame_device_context, buffer.bitmap);
+// }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
     const wchar_t window_class_name[] = L"MNIST-x86";
@@ -111,6 +99,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
 }
 
 LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM wParam, LPARAM lParam) {
+    HDC device_context;
+    PAINTSTRUCT paint;
+
     switch(message) {
         case WM_QUIT:
         case WM_DESTROY:

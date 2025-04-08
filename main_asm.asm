@@ -118,8 +118,6 @@ dense2_bias resb DENSE2_BYTE_SIZE
 output_buffer resb DENSE2_BYTE_SIZE
 
 paint resb 72           ; PAINTSTRUCT (72 bytes)
-device_context resb 8   ; HDC (8 bytes)
-
 
 section .text
 
@@ -409,10 +407,10 @@ WinMain:
     mov QWORD [rsp - 5 * 8], 0x0001         ; PM_REMOVE
     call PeekMessageW
 
-    cmp rax, 0
+    cmp eax, 0
     je .break_while
 
-    lea rcx, [message]
+    lea rcx, [msg]
     call DispatchMessageW
     jmp .while
     .break_while:
