@@ -399,14 +399,14 @@ WinMain:
     %define msg.pt.y                        window_handle - 8              ; 4 bytes + 4 padding bytes
 
     .mainloop:
-    mov QWORD [msg], 0
+    sub rsp, 16                             ; 1 stack parameter + 8 bytes padding, rsp is still 16 byte aligned
 
     .while:
-    lea rcx, [message]
+    lea rcx, [msg]
     mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
-    mov QWORD [message - 8], 0x0001         ; PM_REMOVE
+    mov QWORD [rsp - 5 * 8], 0x0001         ; PM_REMOVE
     call PeekMessageW
 
     cmp rax, 0
@@ -416,6 +416,7 @@ WinMain:
     call DispatchMessageW
     jmp .while
     .break_while:
+    add rsp, 16                             ; clear the parameter space
 
     lea rcx, [window_handle]
     mov rdx, 0                          ; NULL
