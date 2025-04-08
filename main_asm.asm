@@ -172,14 +172,15 @@ initialize_device_context:
     mov DWORD [rcx + 4], edx        ; biWidth offset is 4
     neg r8d
     mov DWORD [rcx + 8], r8d        ; biHeight offset is 8
-    mov WORD [rcx + 24], 1          ; biPlanes offset is 12
-    mov WORD [rcx + 32], 32         ; biBitCount offset is 14
-    mov DWORD [rcx + 40], 0         ; biCompression offset is 16, value is BI_RGB
+    mov WORD [rcx + 12], 1          ; biPlanes offset is 12
+    mov WORD [rcx + 14], 32         ; biBitCount offset is 14
+    mov DWORD [rcx + 16], 0         ; biCompression offset is 16, value is BI_RGB
 
-
+    ; Call CreateCompatibleDC(0)
     xor rcx, rcx                    ; single argument, 0
-    call CreateCompatibleDC         
+    call CreateCompatibleDC
 
+    ; save DC to buffer.frame_device_context
     mov r10, [buffer]
     mov [r10 + 16], rax             ; frame_device_context offset is 16
 
@@ -187,18 +188,21 @@ initialize_device_context:
     ; call CreateDIBSection
     ; =====================
 
-    sub rsp, 2 * 8                  ; 2 stack parameters, rsp is still 16 byte aligned
-    mov rcx, 0                      ; NULL
-    lea rdx, [r10 + bitmap_info_offset]     ; buffer.bitmap_info
-    mov r8, 0                       ; DIB_RGB_COLORS
-    lea r9, [buffer]                ; &buffer.pixels, offset is 0
+    sub rsp, 32 + 16                          ; 32 bytes of shadow space + 2 stack parameters, rsp is still 16 byte aligned
+    mov rcx, 0                              ; NULL
+    lea rdx, [r10 + bitmap_info_offset]     ; &buffer.bitmap_info
+    xor r8, r8                              ; DIB_RGB_COLORS
+    lea r9, [r10]                           ; &buffer.pixels, offset is 0
+    mov QWORD [rsp + 4 * 8], 0
     mov QWORD [rsp + 5 * 8], 0
-    mov QWORD [rsp + 6 * 8], 0
     call CreateDIBSection
-    add rsp, 16                     ; clear the parameter space
+    add rsp, 48                     ; clear the parameter space
 
+    mov r10, [buffer]
+    mov [r10 + 8], rax           ; bitmap offset is 8
 
-    mov rcx, [buffer + 16]          ; frame_device_context offset is 16
+    ; call SelectObject
+    mov rcx, [r10 + 16]          ; frame_device_context offset is 16
     mov rdx, rax
     call SelectObject
 
