@@ -4,12 +4,12 @@
 #include <Windows.h>
 
 struct Buffer {
-    int width;
-    int height;
     uint8_t* pixels;
-    BITMAPINFO bitmap_info = {};
     HBITMAP bitmap = 0;
     HDC frame_device_context = 0;
+    int width;
+    int height;
+    BITMAPINFO bitmap_info = {};
 };
 
 extern "C" void initialize_device_context(Buffer& buffer, int width, int height);
