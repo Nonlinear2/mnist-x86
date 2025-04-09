@@ -444,7 +444,7 @@ WindowProcessMessage:
     mov     rbp, rsp
     ; Reserve 32 bytes of shadow space + 8 bytes for local variables + 8 bytes for 16 byte alignement
     sub     rsp, 48                               
-    
+
     ; use shadow space, 
     %define window_handle                           rbp + 2*8           ; rcx home
     %define message                                 rbp + 3*8           ; rdx home
@@ -489,7 +489,7 @@ WindowProcessMessage:
     ; mov r8, [wParam]
     ; mov r9, [lParam]
     call DefWindowProcW
-    jmp .break
+    jmp .return
 
     .destroy:
     mov BYTE [rel quit], 1
@@ -505,18 +505,19 @@ WindowProcessMessage:
     je .break
     mov rcx, [rel draw_buffer.pixels]
     mov rdx, [lParam]
-    and rdx, 0x0000ffff
+    and rdx, 0xffff
     mov r8, [lParam]
     shr r8, 16
+    and r8, 0xffff
     call update_on_mouse_click
 
     mov rcx, [rel draw_buffer.pixels]
-    mov rdx, [rel mnist_array]
+    lea rdx, [rel mnist_array]
     call get_draw_region_features
 
-    lea rcx, [window_handle]
-    mov rdx, 0              ; NULL
-    mov r8, 0               ; FALSE
+    mov rcx, [window_handle]
+    xor rdx, rdx              ; NULL
+    xor r8, r8                ; FALSE
     call InvalidateRect
     jmp .break
 
@@ -526,25 +527,25 @@ WindowProcessMessage:
     jmp .break
 
     .rmb_down:
-    lea rcx, [rel draw_buffer.pixels]
+    mov rcx, [rel draw_buffer.pixels]
     call clear_draw_region
     jmp .break
 
     .key_down:
-    cmp QWORD [wParam], 0x20          ; VK_SPACE
-    jne .break
+    ; cmp QWORD [wParam], 0x20          ; VK_SPACE
+    ; jne .break
 
     xor rax, rax
     .loop:
     lea rcx, [rel saved_digits_buffer]
     mov rcx, [rcx + rax]
 
-    lea r10, [rel digits_buffer_pixels]
+    mov r10, [rel digits_buffer.pixels]
     mov [r10 + rax], rcx
 
     inc rax
     cmp rax, DIGITS_IMAGE_BYTE_SIZE
-    jle .loop
+    jl .loop
 
     ; ================
     ; call run_network
@@ -562,31 +563,30 @@ WindowProcessMessage:
     call run_network
     add rsp, 16                                ; clear parameter space
 
-    mov rcx, [rel output_buffer]
+    mov ecx, [rel output_buffer]
     xor r8, r8
     mov rax, 1
     .loop2:
     lea r10, [rel output_buffer]
-    mov r10, [r10 + rax]
-    cmp rcx, r10
+    mov r10d, [r10 + 4*rax]
+    cmp r10d, ecx
     jle .keep
-    mov rcx, r10
+    mov ecx, r10d
     mov r8, rax
     .keep:
 
     inc rax
     cmp rax, DENSE2_SIZE
-    jle .loop2
+    jl .loop2
 
-    lea rcx, [rel digits_buffer_pixels]
+    mov rcx, [rel digits_buffer.pixels]
     mov rdx, 24
     imul r8, 57
     add r8, 24
     mov r9, 20
-
     call draw_circle_on_digits
 
-    lea rcx, [window_handle] 
+    mov rcx, [window_handle] 
     xor rdx, rdx                                ; NULL 
     xor r8, r8                                  ; FALSE
     call InvalidateRect
@@ -598,8 +598,7 @@ WindowProcessMessage:
     jmp .break
 
     .paint:
-
-    lea rcx, [window_handle]
+    mov rcx, [window_handle]
     lea rdx, [rel paint]
     call BeginPaint
 
@@ -608,35 +607,37 @@ WindowProcessMessage:
 
     ; call BitBlt twice
 
-    sub rsp, 5 * 8                                  ; 5 stack parameters, rsp is still 16 byte aligned
+    sub rsp, 6 * 8                                  ; 5 stack parameters + 8 padding bytes, rsp is still 16 byte aligned
     mov rcx, [device_context]
     xor rdx, rdx
     xor r8, r8
     mov r9, WINDOW_Y
 
     mov QWORD [rsp + 4 * 8], WINDOW_Y
-    mov QWORD [rsp + 5 * 8], draw_buffer.frame_device_context
+    mov QWORD rax, [draw_buffer.frame_device_context]
+    mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
     mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
     call BitBlt
 
     mov rcx, [device_context]
-    mov rdx, WINDOW_Y + 10
+    mov rdx, WINDOW_Y
+    add rdx, 10
     xor r8, r8
     mov r9, DIGITS_IMAGE_X
 
     mov QWORD [rsp + 4 * 8], DIGITS_IMAGE_Y
-    mov QWORD [rsp + 5 * 8], draw_buffer.frame_device_context
+    mov QWORD rax, [digits_buffer.frame_device_context]
+    mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
     mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
     call BitBlt
 
-    sub rsp, 5 * 8                                  ; clear parameter space
+    add rsp, 6 * 8                                  ; clear parameter space
 
-
-    lea rcx, [window_handle]
+    mov rcx, [window_handle]
     lea rdx, [rel paint]
     call EndPaint
     jmp .break
@@ -644,7 +645,7 @@ WindowProcessMessage:
     .break:
     ; Function epilogue
     xor rax, rax                  ; Return 0
-    
+    .return:
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
