@@ -190,7 +190,7 @@ WindowProcessMessage:
     lea rcx, [rel saved_digits_buffer]
     mov rcx, [rcx + rax]
 
-    lea r10, [rel digits_buffer_pixels]
+    mov r10, [rel digits_buffer.pixels]
     mov [r10 + rax], rcx
 
     inc rax
@@ -220,7 +220,7 @@ WindowProcessMessage:
     lea r10, [rel output_buffer]
     mov r10, [r10 + rax]
     cmp rcx, r10
-    jle .keep
+    jge .keep
     mov rcx, r10
     mov r8, rax
     .keep:
@@ -229,7 +229,7 @@ WindowProcessMessage:
     cmp rax, DENSE2_SIZE
     jle .loop2
 
-    lea rcx, [rel digits_buffer_pixels]
+    mov rcx, [rel digits_buffer.pixels]
     mov rdx, 24
     imul r8, 57
     add r8, 24
