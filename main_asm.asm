@@ -408,7 +408,7 @@ WinMain:
     mov rdx, 0                              ; NULL
     mov r8, 0
     mov r9, 0
-    mov QWORD [rsp - 4 * 8], 0x0001         ; PM_REMOVE
+    mov QWORD [rsp + 4 * 8], 0x0001         ; PM_REMOVE
     call PeekMessageW
 
     cmp eax, 0
