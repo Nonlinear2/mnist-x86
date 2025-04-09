@@ -106,6 +106,8 @@ WindowProcessMessage:
     mov QWORD [wParam], r8
     mov QWORD [lParam], r9
 
+    ; jmp .key_down
+
     ; switch
     cmp QWORD [message], 0x0012               ; WM_QUIT
     je .destroy
@@ -182,8 +184,8 @@ WindowProcessMessage:
     jmp .break
 
     .key_down:
-    cmp QWORD [wParam], 0x20          ; VK_SPACE
-    jne .break
+    ; cmp QWORD [wParam], 0x20          ; VK_SPACE
+    ; jne .break
 
     xor rax, rax
     .loop:
@@ -213,15 +215,15 @@ WindowProcessMessage:
     call run_network
     add rsp, 16                                ; clear parameter space
 
-    mov rcx, [rel output_buffer]
+    mov ecx, [rel output_buffer]
     xor r8, r8
     mov rax, 1
     .loop2:
     lea r10, [rel output_buffer]
-    mov r10, [r10 + rax]
-    cmp rcx, r10
-    jge .keep
-    mov rcx, r10
+    mov r10d, [r10 + 4*rax]
+    cmp r10d, ecx
+    jg .keep
+    mov ecx, r10d
     mov r8, rax
     .keep:
 
