@@ -155,18 +155,19 @@ WindowProcessMessage:
     je .break
     mov rcx, [rel draw_buffer.pixels]
     mov rdx, [lParam]
-    and rdx, 0x0000ffff
+    and rdx, 0xffff
     mov r8, [lParam]
     shr r8, 16
+    and r8, 0xffff
     call update_on_mouse_click
 
     mov rcx, [rel draw_buffer.pixels]
-    mov rdx, [rel mnist_array]
+    lea rdx, [rel mnist_array]
     call get_draw_region_features
 
-    lea rcx, [window_handle]
-    mov rdx, 0              ; NULL
-    mov r8, 0               ; FALSE
+    mov rcx, [window_handle]
+    xor rdx, rdx              ; NULL
+    xor r8, r8                ; FALSE
     call InvalidateRect
     jmp .break
 
@@ -176,7 +177,7 @@ WindowProcessMessage:
     jmp .break
 
     .rmb_down:
-    lea rcx, [rel draw_buffer.pixels]
+    mov rcx, [rel draw_buffer.pixels]
     call clear_draw_region
     jmp .break
 
@@ -233,10 +234,9 @@ WindowProcessMessage:
     imul r8, 57
     add r8, 24
     mov r9, 20
-
     call draw_circle_on_digits
 
-    lea rcx, [window_handle] 
+    mov rcx, [window_handle] 
     xor rdx, rdx                                ; NULL 
     xor r8, r8                                  ; FALSE
     call InvalidateRect
@@ -264,7 +264,8 @@ WindowProcessMessage:
     mov r9, WINDOW_Y
 
     mov QWORD [rsp + 4 * 8], WINDOW_Y
-    mov QWORD [rsp + 5 * 8], draw_buffer.frame_device_context
+    mov QWORD rax, [draw_buffer.frame_device_context]
+    mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
     mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
@@ -277,7 +278,8 @@ WindowProcessMessage:
     mov r9, DIGITS_IMAGE_X
 
     mov QWORD [rsp + 4 * 8], DIGITS_IMAGE_Y
-    mov QWORD [rsp + 5 * 8], digits_buffer.frame_device_context
+    mov QWORD rax, [digits_buffer.frame_device_context]
+    mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
     mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
