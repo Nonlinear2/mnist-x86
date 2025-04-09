@@ -106,8 +106,6 @@ WindowProcessMessage:
     mov QWORD [wParam], r8
     mov QWORD [lParam], r9
 
-    ; jmp .key_down
-
     ; switch
     cmp QWORD [message], 0x0012               ; WM_QUIT
     je .destroy
@@ -197,7 +195,7 @@ WindowProcessMessage:
 
     inc rax
     cmp rax, DIGITS_IMAGE_BYTE_SIZE
-    jle .loop
+    jl .loop
 
     ; ================
     ; call run_network
@@ -222,14 +220,14 @@ WindowProcessMessage:
     lea r10, [rel output_buffer]
     mov r10d, [r10 + 4*rax]
     cmp r10d, ecx
-    jg .keep
+    jle .keep
     mov ecx, r10d
     mov r8, rax
     .keep:
 
     inc rax
     cmp rax, DENSE2_SIZE
-    jle .loop2
+    jl .loop2
 
     mov rcx, [rel digits_buffer.pixels]
     mov rdx, 24
