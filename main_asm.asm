@@ -87,14 +87,14 @@ digits_buffer:
 
 %define bitmap_info_offset                      28
 
-%define draw_buffer.pixels                      draw_buffer + 0
+%define draw_buffer.pixels_ptr                  draw_buffer + 0
 %define draw_buffer.bitmap                      draw_buffer + 8
 %define draw_buffer.frame_device_context        draw_buffer + 16
 %define draw_buffer.width                       draw_buffer + 20
 %define draw_buffer.height                      draw_buffer + 24
 %define draw_buffer.bitmap_info                 draw_buffer + 28
 
-%define digits_buffer.pixels                    digits_buffer + 0
+%define digits_buffer.pixels_ptr                digits_buffer + 0
 %define digits_buffer.bitmap                    digits_buffer + 8
 %define digits_buffer.frame_device_context      digits_buffer + 16
 %define digits_buffer.width                     digits_buffer + 20
@@ -228,7 +228,7 @@ WinMain:
     ; nCmdShow in r9
 
     lea rax, [digits_buffer_pixels]
-    mov [digits_buffer.pixels], rax
+    mov [digits_buffer.pixels_ptr], rax
 
     %define window_class                        rbp - 72    ; WNDCLASSW structure, 72 bytes, aligned on an 8 byte boundary
 
@@ -282,13 +282,13 @@ WinMain:
     mov DWORD [rel draw_buffer.height], WINDOW_Y
     
     lea rax, [rel draw_buffer_pixels]
-    mov QWORD [rel draw_buffer.pixels], rax
+    mov QWORD [rel draw_buffer.pixels_ptr], rax
 
     mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
     mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
-    
+
     lea rax, [rel digits_buffer_pixels]
-    mov QWORD [rel draw_buffer.pixels], rax
+    mov QWORD [rel digits_buffer.pixels_ptr], rax
 
     ; initialize_device_context for draw_buffer
 
@@ -306,7 +306,7 @@ WinMain:
 
     ; load digit image
 
-    mov rcx, [digits_buffer.pixels]
+    mov rcx, [digits_buffer.pixels_ptr]
     call load_digit_image
 
     lea rcx, [rel saved_digits_buffer]
@@ -347,7 +347,7 @@ WinMain:
     ; create window
     ; =============
 
-    sub rsp, 64                             ; 8 stack parameters, rsp is still 16 byte aligned
+    sub rsp, 64                             ; 7 stack parameters + 8 padding bytes, rsp is still 16 byte aligned
     lea rcx, [rel window_name]
     lea rdx, [rel window_name]
     mov r8, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
@@ -366,7 +366,7 @@ WinMain:
     mov QWORD [rsp + 7 * 8], 0              ; NULL
     mov QWORD [rsp + 8 * 8], 0              ; NULL
 
-    lea rax, [rel hInstance]
+    mov rax, [rel hInstance]
     mov QWORD [rsp + 9 * 8], rax
 
     mov QWORD [rsp + 10 * 8], 0             ; NULL
@@ -420,12 +420,12 @@ WinMain:
     .break_while:
     add rsp, 16                             ; clear the parameter space
 
-    lea rcx, [window_handle]
+    mov rcx, [window_handle]
     mov rdx, 0                          ; NULL
     mov r8, 0                           ; FALSE
     call InvalidateRect
 
-    lea rcx, [window_handle]
+    mov rcx, [window_handle]
     call UpdateWindow
 
     cmp BYTE [rel quit], 0
@@ -503,7 +503,7 @@ WindowProcessMessage:
     .mouse_move:
     cmp BYTE [rel lmb_down], 0
     je .break
-    mov rcx, [rel draw_buffer.pixels]
+    mov rcx, [rel draw_buffer.pixels_ptr]
     mov rdx, [lParam]
     and rdx, 0xffff
     mov r8, [lParam]
@@ -511,7 +511,7 @@ WindowProcessMessage:
     and r8, 0xffff
     call update_on_mouse_click
 
-    mov rcx, [rel draw_buffer.pixels]
+    mov rcx, [rel draw_buffer.pixels_ptr]
     lea rdx, [rel mnist_array]
     call get_draw_region_features
 
@@ -527,7 +527,7 @@ WindowProcessMessage:
     jmp .break
 
     .rmb_down:
-    mov rcx, [rel draw_buffer.pixels]
+    mov rcx, [rel draw_buffer.pixels_ptr]
     call clear_draw_region
     jmp .break
 
@@ -540,7 +540,7 @@ WindowProcessMessage:
     lea rcx, [rel saved_digits_buffer]
     mov rcx, [rcx + rax]
 
-    mov r10, [rel digits_buffer.pixels]
+    mov r10, [rel digits_buffer.pixels_ptr]
     mov [r10 + rax], rcx
 
     inc rax
@@ -579,7 +579,7 @@ WindowProcessMessage:
     cmp rax, DENSE2_SIZE
     jl .loop2
 
-    mov rcx, [rel digits_buffer.pixels]
+    mov rcx, [rel digits_buffer.pixels_ptr]
     mov rdx, 24
     imul r8, 57
     add r8, 24
