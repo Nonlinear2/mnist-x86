@@ -9,7 +9,6 @@ extern CreateWindowExW
 extern LoadCursorW
 extern SetCursor
 extern PeekMessageW
-extern WindowProcessMessage
 extern DispatchMessageW
 extern InvalidateRect
 extern DefWindowProcW
@@ -17,6 +16,8 @@ extern SetCapture
 extern BeginPaint
 extern BitBlt
 extern EndPaint
+
+extern GetLastError
 
 extern UpdateWindow
 extern ReleaseCapture
@@ -118,6 +119,7 @@ output_buffer resb DENSE2_BYTE_SIZE
 paint resb 72           ; PAINTSTRUCT (72 bytes)
 
 section .text
+global WindowProcessMessage
 
 main:
     ; Function prologue
@@ -135,8 +137,7 @@ main:
     call    WinMain
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
+    ; rax contains the return value from WinMain
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
@@ -250,7 +251,9 @@ WinMain:
     lea rax, [rel WindowProcessMessage]
     mov [window_class.lpfnWndProc], rax
 
-    mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
+    ; mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
+    mov DWORD [window_class.cbClsExtra], 0
+    mov DWORD [window_class.cbWndExtra], 0
 
     mov [window_class.hInstance], rcx
 
@@ -271,53 +274,53 @@ WinMain:
     lea rcx, [window_class]
     call RegisterClassW
 
-    ; ==================
-    ; initialize buffers
-    ; ==================
+    ; ; ==================
+    ; ; initialize buffers
+    ; ; ==================
 
-    mov DWORD [rel draw_buffer.width], WINDOW_Y
-    mov DWORD [rel draw_buffer.height], WINDOW_Y
+    ; mov DWORD [rel draw_buffer.width], WINDOW_Y
+    ; mov DWORD [rel draw_buffer.height], WINDOW_Y
     
-    lea rax, [rel draw_buffer_pixels]
-    mov QWORD [rel draw_buffer.pixels_ptr], rax
+    ; lea rax, [rel draw_buffer_pixels]
+    ; mov QWORD [rel draw_buffer.pixels_ptr], rax
 
-    mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
-    mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
+    ; mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
+    ; mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
 
-    lea rax, [rel digits_buffer_pixels]
-    mov QWORD [rel digits_buffer.pixels_ptr], rax
+    ; lea rax, [rel digits_buffer_pixels]
+    ; mov QWORD [rel digits_buffer.pixels_ptr], rax
 
-    ; initialize_device_context for draw_buffer
+    ; ; initialize_device_context for draw_buffer
 
-    lea rcx, [rel draw_buffer]
-    mov rdx, WINDOW_Y
-    mov r8, WINDOW_Y
-    call initialize_device_context
+    ; lea rcx, [rel draw_buffer]
+    ; mov rdx, WINDOW_Y
+    ; mov r8, WINDOW_Y
+    ; call initialize_device_context
 
-    ; initialize_device_context for digits_buffer
+    ; ; initialize_device_context for digits_buffer
 
-    lea rcx, [rel digits_buffer]
-    mov rdx, DIGITS_IMAGE_X
-    mov r8, DIGITS_IMAGE_Y
-    call initialize_device_context
+    ; lea rcx, [rel digits_buffer]
+    ; mov rdx, DIGITS_IMAGE_X
+    ; mov r8, DIGITS_IMAGE_Y
+    ; call initialize_device_context
 
-    ; load digit image
+    ; ; load digit image
 
-    mov rcx, [digits_buffer.pixels_ptr]
-    call load_digit_image
+    ; mov rcx, [digits_buffer.pixels_ptr]
+    ; call load_digit_image
 
-    lea rcx, [rel saved_digits_buffer]
-    call load_digit_image
+    ; lea rcx, [rel saved_digits_buffer]
+    ; call load_digit_image
 
-    ; ===========================
-    ; load neural network weights
-    ; ===========================
+    ; ; ===========================
+    ; ; load neural network weights
+    ; ; ===========================
 
-    lea rcx, [rel dense1_weights]
-    lea rdx, [rel dense1_bias]
-    lea r8, [rel dense2_weights]
-    lea r9, [rel dense2_bias]
-    call load_weights
+    ; lea rcx, [rel dense1_weights]
+    ; lea rdx, [rel dense1_bias]
+    ; lea r8, [rel dense2_weights]
+    ; lea r9, [rel dense2_bias]
+    ; call load_weights
 
     ; ==================
     ; adjust window size
@@ -344,29 +347,30 @@ WinMain:
     ; create window
     ; =============
 
-    sub rsp, 64                             ; 7 stack parameters + 8 padding bytes, rsp is still 16 byte aligned
-    lea rcx, [rel window_name]
+    sub rsp, 64                             ; 8 stack parameters, rsp is still 16 byte aligned
+    mov rcx, 0
     lea rdx, [rel window_name]
-    mov r8, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    mov r9, 440
-
-    mov QWORD [rsp + 4 * 8], 120
+    lea r8,  [rel window_name]
+    mov r9, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
+    
+    mov QWORD [rsp + 4 * 8], 440
+    mov QWORD [rsp + 5 * 8], 120
 
     mov rax, [window_rect.right]
     sub rax, [window_rect.left]
-    mov QWORD [rsp + 5 * 8], rax
+    mov QWORD [rsp + 6 * 8], rax
 
     mov rax, [window_rect.bottom]
     sub rax, [window_rect.top]
-    mov QWORD [rsp + 6 * 8], rax
+    mov QWORD [rsp + 7 * 8], rax
 
-    mov QWORD [rsp + 7 * 8], 0              ; NULL
     mov QWORD [rsp + 8 * 8], 0              ; NULL
+    mov QWORD [rsp + 9 * 8], 0              ; NULL
 
     mov rax, [window_class.hInstance]
-    mov QWORD [rsp + 9 * 8], rax
+    mov QWORD [rsp + 10 * 8], rax
 
-    mov QWORD [rsp + 10 * 8], 0             ; NULL
+    mov QWORD [rsp + 11 * 8], 0             ; NULL
     call CreateWindowExW
     add rsp, 64                             ; clear the parameter space
 
@@ -435,6 +439,7 @@ WinMain:
     .return:
         ; Function epilogue
     xor rax, rax                  ; Return 0
+    call GetLastError
     mov rsp, rbp ; Deallocate local variables
     pop rbp ; Restore the caller's base pointer value
     ret
