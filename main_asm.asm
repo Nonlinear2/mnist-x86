@@ -103,8 +103,6 @@ digits_buffer:
 
 section .bss
 align 8
-hInstance resq 1
-
 draw_buffer_pixels resb DRAW_BUFFER_BYTE_SIZE
 mnist_array resb MNIST_ARRAY_BYTE_SIZE
 digits_buffer_pixels resb DIGITS_BUFFER_BYTE_SIZE
@@ -129,9 +127,8 @@ main:
 
     xor rcx, rcx
     call GetModuleHandleW
-    mov [rel hInstance], rax
 
-    mov     rcx, [rel hInstance]  ; hInstance
+    mov     rcx, rax              ; hInstance
     xor     rdx, rdx              ; hPrevInstance (always NULL)
     xor     r8, r8                ; lpCmdLine (NULL)
     xor     r9, r9                ; nCmdShow (0)
@@ -227,8 +224,8 @@ WinMain:
     ; pCmdLine in r8
     ; nCmdShow in r9
 
-    lea rax, [digits_buffer_pixels]
-    mov [digits_buffer.pixels_ptr], rax
+    ; lea rax, [digits_buffer_pixels]
+    ; mov [digits_buffer.pixels_ptr], rax
 
     %define window_class                        rbp - 72    ; WNDCLASSW structure, 72 bytes, aligned on an 8 byte boundary
 
@@ -250,7 +247,7 @@ WinMain:
 
     mov DWORD [window_class.style], 0
 
-    lea rax, [WindowProcessMessage]
+    lea rax, [rel WindowProcessMessage]
     mov [window_class.lpfnWndProc], rax
 
     mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
@@ -293,11 +290,11 @@ WinMain:
     ; initialize_device_context for draw_buffer
 
     lea rcx, [rel draw_buffer]
-    mov rdx, WINDOW_X
+    mov rdx, WINDOW_Y
     mov r8, WINDOW_Y
     call initialize_device_context
 
-    ; initialize_device_context for draw_buffer
+    ; initialize_device_context for digits_buffer
 
     lea rcx, [rel digits_buffer]
     mov rdx, DIGITS_IMAGE_X
@@ -366,12 +363,15 @@ WinMain:
     mov QWORD [rsp + 7 * 8], 0              ; NULL
     mov QWORD [rsp + 8 * 8], 0              ; NULL
 
-    mov rax, [rel hInstance]
+    mov rax, [window_class.hInstance]
     mov QWORD [rsp + 9 * 8], rax
 
     mov QWORD [rsp + 10 * 8], 0             ; NULL
     call CreateWindowExW
     add rsp, 64                             ; clear the parameter space
+
+    cmp rax, 0
+    je .return
 
     %define window_handle                       window_rect - 8
     mov [window_handle], rax
