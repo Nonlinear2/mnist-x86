@@ -225,8 +225,8 @@ WinMain:
     ; pCmdLine in r8
     ; nCmdShow in r9
 
-    ; lea rax, [digits_buffer_pixels]
-    ; mov [digits_buffer.pixels_ptr], rax
+    lea rax, [digits_buffer_pixels]
+    mov [digits_buffer.pixels_ptr], rax
 
     %define window_class                        rbp - 72    ; WNDCLASSW structure, 72 bytes, aligned on an 8 byte boundary
 
@@ -251,9 +251,7 @@ WinMain:
     lea rax, [rel WindowProcessMessage]
     mov [window_class.lpfnWndProc], rax
 
-    ; mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
-    mov DWORD [window_class.cbClsExtra], 0
-    mov DWORD [window_class.cbWndExtra], 0
+    mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
 
     mov [window_class.hInstance], rcx
 
@@ -274,53 +272,53 @@ WinMain:
     lea rcx, [window_class]
     call RegisterClassW
 
-    ; ; ==================
-    ; ; initialize buffers
-    ; ; ==================
+    ; ==================
+    ; initialize buffers
+    ; ==================
 
-    ; mov DWORD [rel draw_buffer.width], WINDOW_Y
-    ; mov DWORD [rel draw_buffer.height], WINDOW_Y
+    mov DWORD [rel draw_buffer.width], WINDOW_Y
+    mov DWORD [rel draw_buffer.height], WINDOW_Y
     
-    ; lea rax, [rel draw_buffer_pixels]
-    ; mov QWORD [rel draw_buffer.pixels_ptr], rax
+    lea rax, [rel draw_buffer_pixels]
+    mov QWORD [rel draw_buffer.pixels_ptr], rax
 
-    ; mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
-    ; mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
+    mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
+    mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
 
-    ; lea rax, [rel digits_buffer_pixels]
-    ; mov QWORD [rel digits_buffer.pixels_ptr], rax
+    lea rax, [rel digits_buffer_pixels]
+    mov QWORD [rel digits_buffer.pixels_ptr], rax
 
-    ; ; initialize_device_context for draw_buffer
+    ; initialize_device_context for draw_buffer
 
-    ; lea rcx, [rel draw_buffer]
-    ; mov rdx, WINDOW_Y
-    ; mov r8, WINDOW_Y
-    ; call initialize_device_context
+    lea rcx, [rel draw_buffer]
+    mov rdx, WINDOW_Y
+    mov r8, WINDOW_Y
+    call initialize_device_context
 
-    ; ; initialize_device_context for digits_buffer
+    ; initialize_device_context for digits_buffer
 
-    ; lea rcx, [rel digits_buffer]
-    ; mov rdx, DIGITS_IMAGE_X
-    ; mov r8, DIGITS_IMAGE_Y
-    ; call initialize_device_context
+    lea rcx, [rel digits_buffer]
+    mov rdx, DIGITS_IMAGE_X
+    mov r8, DIGITS_IMAGE_Y
+    call initialize_device_context
 
-    ; ; load digit image
+    ; load digit image
 
-    ; mov rcx, [digits_buffer.pixels_ptr]
-    ; call load_digit_image
+    mov rcx, [digits_buffer.pixels_ptr]
+    call load_digit_image
 
-    ; lea rcx, [rel saved_digits_buffer]
-    ; call load_digit_image
+    lea rcx, [rel saved_digits_buffer]
+    call load_digit_image
 
-    ; ; ===========================
-    ; ; load neural network weights
-    ; ; ===========================
+    ; ===========================
+    ; load neural network weights
+    ; ===========================
 
-    ; lea rcx, [rel dense1_weights]
-    ; lea rdx, [rel dense1_bias]
-    ; lea r8, [rel dense2_weights]
-    ; lea r9, [rel dense2_bias]
-    ; call load_weights
+    lea rcx, [rel dense1_weights]
+    lea rdx, [rel dense1_bias]
+    lea r8, [rel dense2_weights]
+    lea r9, [rel dense2_bias]
+    call load_weights
 
     ; ==================
     ; adjust window size
