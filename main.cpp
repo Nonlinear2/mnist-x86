@@ -7,7 +7,7 @@ static bool quit = false;
 static bool lmb_down = false;       // left mouse button down
 
 // int main() {
-//     std::cout << sizeof(LONG) << std::endl;
+//     std::cout << sizeof(WNDCLASS) << std::endl;
 //     return 0;
 // }
 
@@ -82,7 +82,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, 
         NULL, NULL, hInstance, NULL
     );
 
-    if(window_handle == NULL)
+    if (window_handle == NULL)
         return -1;
 
     SetCursor(LoadCursor(NULL, IDC_ARROW));
@@ -144,8 +144,8 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
                 int max = -10000000;
                 int val = 0;
                 for (int i = 0; i < DENSE2_SIZE; i++){
-                    if (output_buffer[i]/256 > max){
-                        max = output_buffer[i]/256;
+                    if (output_buffer[i] > max){
+                        max = output_buffer[i];
                         val = i;
                     }
                 }
