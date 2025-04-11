@@ -11,18 +11,13 @@ extern SetCursor
 extern PeekMessageW
 extern DispatchMessageW
 extern InvalidateRect
+extern UpdateWindow
 extern DefWindowProcW
 extern SetCapture
+extern ReleaseCapture
 extern BeginPaint
 extern BitBlt
 extern EndPaint
-
-extern GetLastError
-
-extern UpdateWindow
-extern ReleaseCapture
-
-extern MakeIntResourceW
 
 extern load_weights
 extern load_digit_image
@@ -31,7 +26,6 @@ extern draw_circle_on_digits
 extern get_draw_region_features
 extern update_on_mouse_click
 extern run_network
-
 
 global main
 
@@ -61,7 +55,7 @@ global main
 %define DENSE2_WEIGHTS_BYTE_SIZE        DENSE1_SIZE*DENSE2_SIZE*4
 
 section .data
-window_name  dw 'M', 'N', 'I', 'S', 'T', '-', 'x', '8', '6', 0    ; wide character string
+window_name dw 'M', 'N', 'I', 'S', 'T', '-', 'x', '8', '6', 0    ; wide character string
 
 quit db 0
 lmb_down db 0
@@ -104,19 +98,19 @@ digits_buffer:
 
 section .bss
 align 8
-draw_buffer_pixels resb DRAW_BUFFER_BYTE_SIZE
-mnist_array resb MNIST_ARRAY_BYTE_SIZE
-digits_buffer_pixels resb DIGITS_BUFFER_BYTE_SIZE
-saved_digits_buffer resb DIGITS_BUFFER_BYTE_SIZE
+draw_buffer_pixels      resb DRAW_BUFFER_BYTE_SIZE
+mnist_array             resb MNIST_ARRAY_BYTE_SIZE
+digits_buffer_pixels    resb DIGITS_BUFFER_BYTE_SIZE
+saved_digits_buffer     resb DIGITS_BUFFER_BYTE_SIZE
 
-dense1_weights resb DENSE1_WEIGHTS_BYTE_SIZE
-dense1_bias resb DENSE1_BYTE_SIZE
-dense2_weights resb DENSE2_WEIGHTS_BYTE_SIZE
-dense2_bias resb DENSE2_BYTE_SIZE
+dense1_weights          resb DENSE1_WEIGHTS_BYTE_SIZE
+dense1_bias             resb DENSE1_BYTE_SIZE
+dense2_weights          resb DENSE2_WEIGHTS_BYTE_SIZE
+dense2_bias             resb DENSE2_BYTE_SIZE
 
-output_buffer resb DENSE2_BYTE_SIZE
+output_buffer           resb DENSE2_BYTE_SIZE
 
-paint resb 72           ; PAINTSTRUCT (72 bytes)
+paint                   resb 72                 ; PAINTSTRUCT (72 bytes)
 
 section .text
 global WindowProcessMessage
@@ -125,21 +119,21 @@ main:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    sub     rsp, 32                             ; Reserve 32 bytes of shadow space
 
     xor rcx, rcx
     call GetModuleHandleW
 
-    mov     rcx, rax              ; hInstance
-    xor     rdx, rdx              ; hPrevInstance (always NULL)
-    xor     r8, r8                ; lpCmdLine (NULL)
-    xor     r9, r9                ; nCmdShow (0)
+    mov     rcx, rax                            ; hInstance
+    xor     rdx, rdx                            ; hPrevInstance (always NULL)
+    xor     r8, r8                              ; lpCmdLine (NULL)
+    xor     r9, r9                              ; nCmdShow (0)
     call    WinMain
 
     ; Function epilogue
     ; rax contains the return value from WinMain
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    mov rsp, rbp                                ; Deallocate local variables
+    pop rbp                                     ; Restore the caller's base pointer value
     ret
 
 ; void initialize_device_context(Buffer& buffer, int width, int height);
@@ -166,50 +160,50 @@ initialize_device_context:
 
     ; buffer.bitmap_info.bmiHeader.biSize = sizeof(buffer.bitmap_info.bmiHeader);
     ; bmiHeader offset is 0
-    mov DWORD [rcx], 40             ; biSize offset is 0
-    mov DWORD [rcx + 4], edx        ; biWidth offset is 4
+    mov DWORD [rcx], 40                         ; biSize offset is 0
+    mov DWORD [rcx + 4], edx                    ; biWidth offset is 4
     neg r8d
-    mov DWORD [rcx + 8], r8d        ; biHeight offset is 8
-    mov WORD [rcx + 12], 1          ; biPlanes offset is 12
-    mov WORD [rcx + 14], 32         ; biBitCount offset is 14
-    mov DWORD [rcx + 16], 0         ; biCompression offset is 16, value is BI_RGB
+    mov DWORD [rcx + 8], r8d                    ; biHeight offset is 8
+    mov WORD [rcx + 12], 1                      ; biPlanes offset is 12
+    mov WORD [rcx + 14], 32                     ; biBitCount offset is 14
+    mov DWORD [rcx + 16], 0                     ; biCompression offset is 16, value is BI_RGB
 
     ; Call CreateCompatibleDC(0)
-    xor rcx, rcx                    ; single argument, 0
+    xor rcx, rcx                                ; single argument, 0
     call CreateCompatibleDC
 
     ; save DC to buffer.frame_device_context
     mov r10, [buffer]
-    mov [r10 + 16], rax             ; frame_device_context offset is 16
+    mov [r10 + 16], rax                         ; frame_device_context offset is 16
 
     ; =====================
     ; call CreateDIBSection
     ; =====================
 
-    sub rsp, 2 * 8                          ; 2 stack parameters, rsp remains 16 byte aligned
-    mov rcx, 0                              ; NULL
-    lea rdx, [r10 + bitmap_info_offset]     ; &buffer.bitmap_info
-    xor r8, r8                              ; DIB_RGB_COLORS
-    lea r9, [r10]                           ; &buffer.pixels, offset is 0
+    sub rsp, 2 * 8                              ; 2 stack parameters, rsp remains 16 byte aligned
+    mov rcx, 0                                  ; NULL
+    lea rdx, [r10 + bitmap_info_offset]         ; &buffer.bitmap_info
+    xor r8, r8                                  ; DIB_RGB_COLORS
+    lea r9, [r10]                               ; &buffer.pixels, offset is 0
     mov QWORD [rsp + 4 * 8], 0
     mov QWORD [rsp + 5 * 8], 0
     call CreateDIBSection
-    add rsp, 16                             ; clear the parameter space
+    add rsp, 16                                 ; clear the parameter space
 
     mov r10, [buffer]
-    mov [r10 + 8], rax           ; bitmap offset is 8
+    mov [r10 + 8], rax                          ; bitmap offset is 8
 
     ; call SelectObject
-    mov rcx, [r10 + 16]          ; frame_device_context offset is 16
+    mov rcx, [r10 + 16]                         ; frame_device_context offset is 16
     mov rdx, rax
     call SelectObject
 
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
+    xor rax, rax                                ; Return 0
 
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    mov rsp, rbp                                ; Deallocate local variables
+    pop rbp                                     ; Restore the caller's base pointer value
     ret
 
 ; int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow);
@@ -251,7 +245,7 @@ WinMain:
     lea rax, [rel WindowProcessMessage]
     mov [window_class.lpfnWndProc], rax
 
-    mov QWORD [window_class.cbClsExtra], 0     ; fill cbClsExtra and cbWndExtra with 0 at the same time
+    mov QWORD [window_class.cbClsExtra], 0      ; fill cbClsExtra and cbWndExtra with 0 at the same time
 
     mov [window_class.hInstance], rcx
 
@@ -259,7 +253,7 @@ WinMain:
     mov QWORD [window_class.hCursor], 0
 
     ; window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    mov QWORD rcx, 4                   ; BLACK_BRUSH
+    mov QWORD rcx, 4                            ; BLACK_BRUSH
     call GetStockObject
     mov [window_class.hbrBackground], rax
 
@@ -324,12 +318,12 @@ WinMain:
     ; adjust window size
     ; ==================
 
-    %define window_rect                     window_class - 16
+    %define window_rect                         window_class - 16
 
-    %define window_rect.left                window_class - 16           ; LONG, 4 bytes
-    %define window_rect.top                 window_class - 12           ; LONG, 4 bytes
-    %define window_rect.right               window_class - 8            ; LONG, 4 bytes
-    %define window_rect.bottom              window_class - 4            ; LONG, 4 bytes
+    %define window_rect.left                    window_class - 16           ; LONG, 4 bytes
+    %define window_rect.top                     window_class - 12           ; LONG, 4 bytes
+    %define window_rect.right                   window_class - 8            ; LONG, 4 bytes
+    %define window_rect.bottom                  window_class - 4            ; LONG, 4 bytes
 
     mov DWORD [window_rect.left], 0
     mov DWORD [window_rect.top], 0
@@ -337,19 +331,19 @@ WinMain:
     mov DWORD [window_rect.bottom], WINDOW_Y
 
     lea rcx, [window_rect]
-    mov rdx, 0xCA0000                       ; WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    xor r8, r8                              ; FALSE
+    mov rdx, 0xCA0000                           ; WS_OVERLAPPEDWINDOW & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
+    xor r8, r8                                  ; FALSE
     call AdjustWindowRect
 
     ; =============
     ; create window
     ; =============
 
-    sub rsp, 64                             ; 8 stack parameters, rsp is still 16 byte aligned
+    sub rsp, 64                                 ; 8 stack parameters, rsp is still 16 byte aligned
     mov rcx, 0
     lea rdx, [rel window_name]
     lea r8,  [rel window_name]
-    mov r9, 0x10CA0000                      ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
+    mov r9, 0x10CA0000                          ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
     
     mov QWORD [rsp + 4 * 8], 440
     mov QWORD [rsp + 5 * 8], 120
@@ -362,15 +356,15 @@ WinMain:
     sub rax, [window_rect.top]
     mov QWORD [rsp + 7 * 8], rax
 
-    mov QWORD [rsp + 8 * 8], 0              ; NULL
-    mov QWORD [rsp + 9 * 8], 0              ; NULL
+    mov QWORD [rsp + 8 * 8], 0                  ; NULL
+    mov QWORD [rsp + 9 * 8], 0                  ; NULL
 
     mov rax, [window_class.hInstance]
     mov QWORD [rsp + 10 * 8], rax
 
-    mov QWORD [rsp + 11 * 8], 0             ; NULL
+    mov QWORD [rsp + 11 * 8], 0                 ; NULL
     call CreateWindowExW
-    add rsp, 64                             ; clear the parameter space
+    add rsp, 64                                 ; clear the parameter space
 
     cmp rax, 0
     je .return
@@ -382,8 +376,8 @@ WinMain:
     ; set cursor
     ; ==========
 
-    mov rcx, 0                              ; NULL
-    mov rdx, 32512                          ; IDC_ARROW
+    mov rcx, 0                                  ; NULL
+    mov rdx, 32512                              ; IDC_ARROW
     call LoadCursorW
 
     mov rcx, rax
@@ -423,8 +417,8 @@ WinMain:
     add rsp, 16                             ; clear the parameter space
 
     mov rcx, [window_handle]
-    mov rdx, 0                          ; NULL
-    mov r8, 0                           ; FALSE
+    mov rdx, 0                              ; NULL
+    mov r8, 0                               ; FALSE
     call InvalidateRect
 
     mov rcx, [window_handle]
@@ -436,10 +430,9 @@ WinMain:
 
     .return:
         ; Function epilogue
-    xor rax, rax                  ; Return 0
-    call GetLastError
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                            ; Return 0
+    mov rsp, rbp                            ; Deallocate local variables
+    pop rbp                                 ; Restore the caller's base pointer value
     ret
 
 WindowProcessMessage:
@@ -487,10 +480,7 @@ WindowProcessMessage:
     cmp QWORD [message], 0x000F               ; WM_PAINT
     je .paint
 
-    ; mov rcx, [window_handle]
-    ; mov rdx, [message]
-    ; mov r8, [wParam]
-    ; mov r9, [lParam]
+    ; parameters are already loaded
     call DefWindowProcW
     jmp .return
 
@@ -519,8 +509,8 @@ WindowProcessMessage:
     call get_draw_region_features
 
     mov rcx, [window_handle]
-    xor rdx, rdx              ; NULL
-    xor r8, r8                ; FALSE
+    xor rdx, rdx                            ; NULL
+    xor r8, r8                              ; FALSE
     call InvalidateRect
     jmp .break
 
@@ -535,8 +525,8 @@ WindowProcessMessage:
     jmp .break
 
     .key_down:
-    ; cmp QWORD [wParam], 0x20          ; VK_SPACE
-    ; jne .break
+    cmp QWORD [wParam], 0x20                ; VK_SPACE
+    jne .break
 
     xor rax, rax
     .loop:
@@ -647,8 +637,8 @@ WindowProcessMessage:
 
     .break:
     ; Function epilogue
-    xor rax, rax                  ; Return 0
+    xor rax, rax                                    ; Return 0
     .return:
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
