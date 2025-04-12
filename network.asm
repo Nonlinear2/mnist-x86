@@ -35,66 +35,64 @@ load_weights:
     ; dense2_weights in r8
     ; dense2_bias in r9
 
-    push rdi            ; callee-saved
-    push rsi            ; callee-saved
+    push rdi                                        ; callee-saved
+    push rsi                                        ; callee-saved
 
 
     ; dense1 weights
-    lea rsi, [rel stored_dense1_weights]       ; source
-    mov rdi, rcx                               ; destination
+    lea rsi, [rel stored_dense1_weights]            ; source
+    mov rdi, rcx                                    ; destination
     mov rcx, DENSE1_WEIGHTS_BYTE_SIZE
 
-    cld                 ; clear direction flag (ensure forward copy)
-    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+    cld                                             ; clear direction flag (ensure forward copy)
+    rep movsb                                       ; copy rcx bytes from [rsi] to [rdi]
 
 
     ; dense1 bias
-    lea rsi, [rel stored_dense1_bias]          ; source
-    mov rdi, rdx                               ; destination
+    lea rsi, [rel stored_dense1_bias]               ; source
+    mov rdi, rdx                                    ; destination
     mov rcx, DENSE1_BYTE_SIZE
 
-    cld                 ; clear direction flag (ensure forward copy)
-    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+    cld                                             ; clear direction flag (ensure forward copy)
+    rep movsb                                       ; copy rcx bytes from [rsi] to [rdi]
 
 
     ; dense2 weights
-    lea rsi, [rel stored_dense2_weights]              ; source
-    mov rdi, r8                                       ; destination
+    lea rsi, [rel stored_dense2_weights]            ; source
+    mov rdi, r8                                     ; destination
     mov rcx, DENSE2_WEIGHTS_BYTE_SIZE
 
-    cld                 ; clear direction flag (ensure forward copy)
-    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+    cld                                             ; clear direction flag (ensure forward copy)
+    rep movsb                                       ; copy rcx bytes from [rsi] to [rdi]
 
 
     ; dense2 bias
-    lea rsi, [rel stored_dense2_bias]                 ; source
-    mov rdi, r9                                       ; destination
+    lea rsi, [rel stored_dense2_bias]               ; source
+    mov rdi, r9                                     ; destination
     mov rcx, DENSE2_BYTE_SIZE
 
-    cld                 ; clear direction flag (ensure forward copy)
-    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+    cld                                             ; clear direction flag (ensure forward copy)
+    rep movsb                                       ; copy rcx bytes from [rsi] to [rdi]
 
     pop rsi
     pop rdi
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 
 ; void run_network(uint8_t* input_buffer,
 ;                  int* dense1_weights, int* dense1_bias, int* dense2_weights, int* dense2_bias,
 ;                  int* output_buffer);
-
 run_network:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
     ; Reserve 32 bytes of shadow space + sizeof(int)*DENSE1_SIZE + sizeof(layer_1_output)
-    %define reserved_space 32 + DENSE1_BYTE_SIZE + 8
+    %define reserved_space                          32 + DENSE1_BYTE_SIZE + 8
     sub     rsp, reserved_space                                 
 
 
@@ -103,8 +101,8 @@ run_network:
     sub r10, DENSE1_BYTE_SIZE
     sub r10, 8
 
-    %define layer1_output [rbp - 8]
-    mov layer1_output, r10
+    %define layer1_output                           rbp - 8
+    mov [layer1_output], r10
 
     ; input_buffer in rcx
     ; dense1_weights in rdx
@@ -123,7 +121,7 @@ run_network:
 
     ; copy bias
     mov r9d, DWORD [r8 + 4*rax]
-    mov r10, layer1_output
+    mov r10, [layer1_output]
     mov DWORD [r10 + 4*rax], r9d
 
     xor r11, r11
@@ -138,7 +136,7 @@ run_network:
     movzx r10d, byte [rcx + r11]  ; zero-extend input_buffer byte to dword
     imul r9d, r10d
 
-    mov r10, layer1_output
+    mov r10, [layer1_output]
     add DWORD [r10 + 4*rax], r9d
 
     inc r11
@@ -149,7 +147,7 @@ run_network:
     cmp rax, DENSE1_SIZE
     jl .loop
 
-    mov r10, layer1_output
+    mov r10, [layer1_output]
     xor rax, rax
     .loop2:
     ; apply relu
@@ -192,7 +190,7 @@ run_network:
     ; └─────────────┘                    
 
     ; layer 2
-    mov rcx, layer1_output
+    mov rcx, [layer1_output]
     pop rdx                        ; rdx now contains dense2_weights
     mov r8, [rbp + 48]             ; r8 now contains dense2_bias
     mov r10, [rbp + 56]            ; r10 now contains output_buffer
