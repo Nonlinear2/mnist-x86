@@ -37,8 +37,7 @@ draw_pixel:
     ; draw_buffer[4*(DRAW_REGION_SIZE*y + x)] = value;
     imul r8, DRAW_REGION_SIZE
     add r8, rdx
-    shl r8, 2                                       ; multiply by 4
-    mov byte [rcx + r8], r9b
+    mov byte [rcx + 4 * r8], r9b
 
     ; Function epilogue
     xor rax, rax                                    ; Return 0
@@ -84,8 +83,7 @@ draw_square:
     imul r9, DRAW_REGION_SIZE
     add r9, rdx
     add r9, rax
-    shl r9, 2       ; multiply by 4
-    mov byte [rcx + r9], 255
+    mov byte [rcx + 4 * r9], 255
 
     inc r10
     cmp r10, SCALE
@@ -117,7 +115,6 @@ clear_draw_region:
     ; rax now has the size of the window
 
     shl rax, 2                                      ; multiply the index by 4, because it is an RBBA array
-    ; now has 4 times the size of the window
 
     xor rdx, rdx                                    ; set rdx to 0
     .first_loop:                                    ; clear all values
@@ -127,13 +124,13 @@ clear_draw_region:
     jl .first_loop
 
 
-    shr eax, 2
+    shr rax, 2
 
     add QWORD rcx, 3                                ; offset to access alpha channel
 
     xor rdx, rdx                                    ; set rdx to 0
     .second_loop:
-    mov byte [rcx + 4*rdx], 255                     ; set the alpha value to 255
+    mov byte [rcx + 4 * rdx], 255                     ; set the alpha value to 255
     inc rdx
     cmp rdx, rax
     jl .second_loop
@@ -213,11 +210,11 @@ update_on_mouse_click:
     div r10                                         ; rdx gets modified, it now contains the remainder
     imul r10
     mov r9, rax
-    
+
     ; y = y / SCALE * SCALE;
     mov rax, r8
     xor rdx, rdx
-    div r10
+    div r10                                         ; rdx gets modified, it now contains the remainder
     imul r10
     mov r8, rax
 
@@ -302,9 +299,8 @@ draw_pixel_on_digits:
 
     imul r8, DIGITS_IMAGE_X
     add r8, rdx
-    shl r8, 2                                       ; multiply by 4
     
-    mov byte [rcx + r8], r9b
+    mov byte [rcx + 4 * r8], r9b
 
     .return:
     ; Function epilogue
