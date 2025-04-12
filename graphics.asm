@@ -7,11 +7,7 @@ global draw_pixel_on_digits
 global load_digit_image
 global draw_circle_on_digits
 
-extern printf
-
-
 section .data
-message db 'value is %d', 10, 0                      ; 10 is newline, 0 is string terminator
 align 8
 digits_data: incbin "./digits_images/all_digits.data"
 digits_size equ $ - digits_data
@@ -41,14 +37,13 @@ draw_pixel:
     ; draw_buffer[4*(DRAW_REGION_SIZE*y + x)] = value;
     imul r8, DRAW_REGION_SIZE
     add r8, rdx
-    shl r8, 2                   ; multiply by 4
+    shl r8, 2                                       ; multiply by 4
     mov byte [rcx + r8], r9b
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 
@@ -77,10 +72,10 @@ draw_square:
     jge .return
 
     ; nested loop to draw a square
-    xor rax, rax                                       ; set rax to 0
+    xor rax, rax                                    ; set rax to 0
     .loop:
 
-    xor r10, r10                                       ; set r10 to 0
+    xor r10, r10                                    ; set r10 to 0
     .inner_loop:
 
     ; draw_buffer[((y + j) * DRAW_REGION_SIZE + (x + i)) * 4] = 255;
@@ -102,10 +97,9 @@ draw_square:
 
     .return:
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 
@@ -114,7 +108,7 @@ clear_draw_region:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                    ; Reserve 32 bytes of shadow space
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
     
     ; buffer pointer in rcx
 
@@ -122,11 +116,11 @@ clear_draw_region:
     imul rax, DRAW_REGION_SIZE
     ; rax now has the size of the window
 
-    shl rax, 2                                         ; multiply the index by 4, because it is an RBBA array
+    shl rax, 2                                      ; multiply the index by 4, because it is an RBBA array
     ; now has 4 times the size of the window
 
-    xor rdx, rdx                                       ; set rdx to 0
-    .first_loop:                                        ; clear all values
+    xor rdx, rdx                                    ; set rdx to 0
+    .first_loop:                                    ; clear all values
     mov byte [rcx + rdx], 0                            
     inc rdx
     cmp rdx, rax
@@ -135,22 +129,21 @@ clear_draw_region:
 
     shr eax, 2
 
-    add QWORD rcx, 3                                   ; offset to access alpha channel
+    add QWORD rcx, 3                                ; offset to access alpha channel
 
-    xor rdx, rdx                                       ; set rdx to 0
+    xor rdx, rdx                                    ; set rdx to 0
     .second_loop:
-    mov byte [rcx + 4*rdx], 255                        ; set the alpha value to 255
+    mov byte [rcx + 4*rdx], 255                     ; set the alpha value to 255
     inc rdx
     cmp rdx, rax
     jl .second_loop
 
-    sub QWORD rcx, 3                                   ; restore the value of rcx
+    sub QWORD rcx, 3                                ; restore the value of rcx
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 
@@ -159,16 +152,16 @@ get_draw_region_features:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                    ; Reserve 32 bytes of shadow space
+    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
     
     ; input buffer pointer in rcx
     ; output buffer pointer in rdx
 
     ; nested loop to draw a square
-    xor rax, rax                                       ; set rax to 0
+    xor rax, rax                                    ; set rax to 0
     .loop:
 
-    xor r10, r10                                       ; set r10 to 0
+    xor r10, r10                                    ; set r10 to 0
     .inner_loop:
 
     ; out_buffer[y * MNIST_SIZE + x] = draw_buffer[(y * SCALE * DRAW_REGION_SIZE + x * SCALE) * 4];
@@ -178,7 +171,7 @@ get_draw_region_features:
     mov r9, r10
     imul r9, SCALE
     add r8, r9
-    shl r8, 2                   ; multiply by 4
+    shl r8, 2                                       ; multiply by 4
 
     mov r9, rax
     imul r9, MNIST_SIZE
@@ -196,10 +189,9 @@ get_draw_region_features:
     jl .loop
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 ; void update_on_mouse_click(uint8_t* draw_buffer, int x, int y);
@@ -217,8 +209,8 @@ update_on_mouse_click:
 
     ; x = x / SCALE * SCALE;
     mov rax, rdx
-    xor rdx, rdx ; the upper 64 bits of the dividend are 0
-    div r10 ; rdx gets modified! it now contains the remainder
+    xor rdx, rdx                                    ; the upper 64 bits of the dividend are 0
+    div r10                                         ; rdx gets modified, it now contains the remainder
     imul r10
     mov r9, rax
     
@@ -278,10 +270,9 @@ update_on_mouse_click:
     call draw_square
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; return 0
+    mov rsp, rbp                                    ; deallocate local variables
+    pop rbp                                         ; restore the caller's base pointer value
     ret
 
 ; void draw_pixel_on_digits(uint8_t* digits_buffer, int x, int y, int value);
@@ -289,7 +280,7 @@ draw_pixel_on_digits:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
+    sub     rsp, 32                                 ; reserve 32 bytes of shadow space
     
     ; buffer pointer in rcx
     ; mouse x position in rdx
@@ -311,16 +302,15 @@ draw_pixel_on_digits:
 
     imul r8, DIGITS_IMAGE_X
     add r8, rdx
-    shl r8, 2           ; multiply by 4
+    shl r8, 2                                       ; multiply by 4
     
     mov byte [rcx + r8], r9b
 
     .return:
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 ; void load_digit_image(uint8_t* digits_buffer);
@@ -332,24 +322,23 @@ load_digit_image:
     
     ; buffer pointer in rcx
 
-    push rdi            ; callee-saved
-    push rsi            ; callee-saved
+    push rdi                                        ; callee-saved
+    push rsi                                        ; callee-saved
 
-    lea rsi, [rel digits_data]      ; source
-    mov rdi, rcx                ; destination
+    lea rsi, [rel digits_data]                      ; source
+    mov rdi, rcx                                    ; destination
     mov rcx, digits_size
 
-    cld                 ; clear direction flag (ensure forward copy)
-    rep movsb           ; copy rcx bytes from [rsi] to [rdi]
+    cld                                             ; clear direction flag (ensure forward copy)
+    rep movsb                                       ; copy rcx bytes from [rsi] to [rdi]
 
     pop rsi
     pop rdi
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
 
 ; void draw_circle_on_digits(uint8_t* digits_buffer, int center_x, int center_y, int r);
