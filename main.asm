@@ -211,8 +211,8 @@ WinMain:
     ; Function prologue
     push    rbp
     mov     rbp, rsp
-    ; 32 bytes of shadow space + 192 bytes for local variables + 0 bytes for 16 byte alignement
-    sub     rsp, 224                                 
+    ; 32 bytes of shadow space + 144 bytes for local variables + 0 bytes for 16 byte alignement
+    sub     rsp, 176                                 
 
     ; hInstance in rcx
     ; hPrevInstance in rdx

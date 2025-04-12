@@ -225,41 +225,44 @@ update_on_mouse_click:
     push rdx    ; x
     push rcx    ; buffer pointer
 
+    %define buffer_ptr                              rsp
+    %define x                                       rsp + 8
+    %define y                                       rsp + 16
 
     ; draw_square(draw_buffer, x, y);
     call draw_square
 
     ; registers may have been modified, so we restore them
-    mov rcx, [rsp]          ; buffer pointer
-    mov rdx, [rsp + 8]      ; x
-    mov r8, [rsp + 16]      ; y
+    mov rcx, [buffer_ptr]
+    mov rdx, [x]
+    mov r8, [y]
 
     sub rdx, SCALE
 
     ; draw_square(draw_buffer, x-SCALE, y);
     call draw_square
 
-    mov rcx, [rsp]          ; buffer pointer
-    mov rdx, [rsp + 8]      ; x
-    mov r8, [rsp + 16]      ; y
+    mov rcx, [buffer_ptr]
+    mov rdx, [x]
+    mov r8, [y]
 
     add rdx, SCALE
 
     ; draw_square(draw_buffer, x+SCALE, y);
     call draw_square
 
-    mov rcx, [rsp]          ; buffer pointer
-    mov rdx, [rsp + 8]      ; x
-    mov r8, [rsp + 16]      ; y
+    mov rcx, [buffer_ptr]
+    mov rdx, [x]
+    mov r8, [y]
 
     sub r8, SCALE
 
     ; draw_square(draw_buffer, x, y-SCALE);
     call draw_square
 
-    mov rcx, [rsp]          ; buffer pointer
-    mov rdx, [rsp + 8]      ; x
-    mov r8, [rsp + 16]      ; y
+    mov rcx, [buffer_ptr]
+    mov rdx, [x]
+    mov r8, [y]
 
     add r8, SCALE
 
@@ -349,55 +352,55 @@ draw_circle_on_digits:
     ; center_y in r8
     ; r in r9
 
-    %define digits_buffer [rbp - 8]
-    %define center_x      [rbp - 16]
-    %define center_y      [rbp - 24]
-    %define x             [rbp - 32]
-    %define y             [rbp - 40]
-    %define p             [rbp - 48]
+    %define digits_buffer_ptr                       rbp - 8
+    %define center_x                                rbp - 16
+    %define center_y                                rbp - 24
+    %define x                                       rbp - 32
+    %define y                                       rbp - 40
+    %define p                                       rbp - 48
 
-    mov digits_buffer, rcx
-    mov center_x, rdx
-    mov center_y, r8
-    mov QWORD x, QWORD 0
+    mov [digits_buffer_ptr], rcx
+    mov [center_x], rdx
+    mov [center_y], r8
+    mov QWORD [x], 0
 
     neg r9
-    mov y, r9
-    mov p, r9
+    mov [y], r9
+    mov [p], r9
 
     ; midpoint circle algorithm
     .while:
-    mov rax, y
+    mov rax, [y]
     neg rax
-    cmp QWORD x, rax
+    cmp QWORD [x], rax
     jge .break
 
-    cmp QWORD p, 0
+    cmp QWORD [p], 0
     jle .else
-    inc QWORD y
-    mov r11, x
-    add r11, y
+    inc QWORD [y]
+    mov r11, [x]
+    add r11, [y]
     shl r11, 1
     inc r11
     jmp .endif
     .else:
-    mov r11, x
+    mov r11, [x]
     shl r11, 1
     inc r11
     .endif:
-    add p, r11
+    add [p], r11
 
     ; draw_pixel_on_digits(digits_buffer, center_x + x, center_y + y, 255);
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
 
     ; center_x + x in rdx
-    mov rdx, center_x
-    add rdx, x
+    mov rdx, [center_x]
+    add rdx, [x]
     ; center_y + y position in r8
-    mov r8, center_y
-    add r8, y
+    mov r8, [center_y]
+    add r8, [y]
     ; 255 in r9
     mov r9, 255
 
@@ -406,97 +409,97 @@ draw_circle_on_digits:
     ; draw_pixel_on_digits(digits_buffer, center_x - x, center_y + y, 255);
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x - x in rdx
-    mov rdx, center_x
-    sub rdx, x
+    mov rdx, [center_x]
+    sub rdx, [x]
     ; center_y + y position in r8
-    mov r8, center_y
-    add r8, y
+    mov r8, [center_y]
+    add r8, [y]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x + x in rdx
-    mov rdx, center_x
-    add rdx, x
+    mov rdx, [center_x]
+    add rdx, [x]
     ; center_y - y position in r8
-    mov r8, center_y
-    sub r8, y
+    mov r8, [center_y]
+    sub r8, [y]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x - x in rdx
-    mov rdx, center_x
-    sub rdx, x
+    mov rdx, [center_x]
+    sub rdx, [x]
     ; center_y - y position in r8
-    mov r8, center_y
-    sub r8, y
+    mov r8, [center_y]
+    sub r8, [y]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x + y in rdx
-    mov rdx, center_x
-    add rdx, y
+    mov rdx, [center_x]
+    add rdx, [y]
     ; center_y + x position in r8
-    mov r8, center_y
-    add r8, x
+    mov r8, [center_y]
+    add r8, [x]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x + y in rdx
-    mov rdx, center_x
-    add rdx, y
+    mov rdx, [center_x]
+    add rdx, [y]
     ; center_y - x position in r8
-    mov r8, center_y
-    sub r8, x
+    mov r8, [center_y]
+    sub r8, [x]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x - y in rdx
-    mov rdx, center_x
-    sub rdx, y
+    mov rdx, [center_x]
+    sub rdx, [y]
     ; center_y + x position in r8
-    mov r8, center_y
-    add r8, x
+    mov r8, [center_y]
+    add r8, [x]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
     ; buffer pointer in rcx
-    mov rcx, digits_buffer
+    mov rcx, [digits_buffer_ptr]
     ; center_x - y in rdx
-    mov rdx, center_x
-    sub rdx, y
+    mov rdx, [center_x]
+    sub rdx, [y]
     ; center_y - x position in r8
-    mov r8, center_y
-    sub r8, x
+    mov r8, [center_y]
+    sub r8, [x]
     ; 255 in r9
     mov r9, 255
 
     call draw_pixel_on_digits
 
-    inc QWORD x
+    inc QWORD [x]
     jmp .while
     .break:
 
