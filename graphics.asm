@@ -22,30 +22,6 @@ section .text
 %define DIGITS_IMAGE_X              50
 %define DIGITS_IMAGE_Y              560
 
-; void draw_pixel(uint8_t* draw_buffer, int x, int y, uint8_t value)
-draw_pixel:
-    ; Function prologue
-    push    rbp
-    mov     rbp, rsp
-    sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
-    
-    ; buffer pointer in rcx
-    ; mouse x position in rdx
-    ; mouse y position in r8
-    ; value in r9
-
-    ; draw_buffer[4*(DRAW_REGION_SIZE*y + x)] = value;
-    imul r8, DRAW_REGION_SIZE
-    add r8, rdx
-    mov byte [rcx + 4 * r8], r9b
-
-    ; Function epilogue
-    xor rax, rax                                    ; Return 0
-    mov rsp, rbp                                    ; Deallocate local variables
-    pop rbp                                         ; Restore the caller's base pointer value
-    ret
-
-
 ; void draw_square(uint8_t* draw_buffer, int x, int y);
 draw_square:
     ; Function prologue
