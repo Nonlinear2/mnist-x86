@@ -218,8 +218,8 @@ WinMain:
     ; pCmdLine in r8
     ; nCmdShow in r9
 
-    lea rax, [digits_buffer_pixels]
-    mov [digits_buffer.pixels_ptr], rax
+    lea rax, [rel digits_buffer_pixels]
+    mov [rel digits_buffer.pixels_ptr], rax
 
     %define window_class                        rbp - 72    ; WNDCLASSW structure, 72 bytes, aligned on an 8 byte boundary
 
@@ -275,8 +275,8 @@ WinMain:
     lea rax, [rel draw_buffer_pixels]
     mov QWORD [rel draw_buffer.pixels_ptr], rax
 
-    mov DWORD [digits_buffer.width], DIGITS_IMAGE_X
-    mov DWORD [digits_buffer.height], DIGITS_IMAGE_Y
+    mov DWORD [rel digits_buffer.width], DIGITS_IMAGE_X
+    mov DWORD [rel digits_buffer.height], DIGITS_IMAGE_Y
 
     lea rax, [rel digits_buffer_pixels]
     mov QWORD [rel digits_buffer.pixels_ptr], rax
@@ -297,7 +297,7 @@ WinMain:
 
     ; load digit image
 
-    mov rcx, [digits_buffer.pixels_ptr]
+    mov rcx, [rel digits_buffer.pixels_ptr]
     call load_digit_image
 
     lea rcx, [rel saved_digits_buffer]
@@ -612,7 +612,7 @@ WindowProcessMessage:
     mov r9, WINDOW_Y
 
     mov QWORD [rsp + 4 * 8], WINDOW_Y
-    mov QWORD rax, [draw_buffer.frame_device_context]
+    mov QWORD rax, [rel draw_buffer.frame_device_context]
     mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
@@ -626,7 +626,7 @@ WindowProcessMessage:
     mov r9, DIGITS_IMAGE_X
 
     mov QWORD [rsp + 4 * 8], DIGITS_IMAGE_Y
-    mov QWORD rax, [digits_buffer.frame_device_context]
+    mov QWORD rax, [rel digits_buffer.frame_device_context]
     mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
