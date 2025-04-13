@@ -29,30 +29,30 @@ extern run_network
 
 global main
 
-%define WINDOW_X                    650
-%define WINDOW_Y                    560
-%define MNIST_SIZE                  28
-%define DRAW_REGION_SIZE            WINDOW_Y
-%define SCALE                       WINDOW_Y / MNIST_SIZE
-%define DIGITS_IMAGE_X              50
-%define DIGITS_IMAGE_Y              560
-%define DIGITS_IMAGE_BYTE_SIZE      DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4
+%define WINDOW_X                                650
+%define WINDOW_Y                                560
+%define MNIST_SIZE                              28
+%define DRAW_REGION_SIZE                        WINDOW_Y
+%define SCALE                                   WINDOW_Y / MNIST_SIZE
+%define DIGITS_IMAGE_X                          50
+%define DIGITS_IMAGE_Y                          560
+%define DIGITS_IMAGE_BYTE_SIZE                  DIGITS_IMAGE_X*DIGITS_IMAGE_Y*4
 
-%define DRAW_BUFFER_BYTE_SIZE       WINDOW_Y * WINDOW_Y * 4
-%define DIGITS_BUFFER_BYTE_SIZE     DIGITS_IMAGE_X * DIGITS_IMAGE_Y * 4
-%define MNIST_ARRAY_BYTE_SIZE       MNIST_SIZE * MNIST_SIZE * 4
+%define DRAW_BUFFER_BYTE_SIZE                   WINDOW_Y * WINDOW_Y * 4
+%define DIGITS_BUFFER_BYTE_SIZE                 DIGITS_IMAGE_X * DIGITS_IMAGE_Y * 4
+%define MNIST_ARRAY_BYTE_SIZE                   MNIST_SIZE * MNIST_SIZE * 4
 
-%define MNIST_SIZE                      28
-%define INPUT_SIZE                      MNIST_SIZE*MNIST_SIZE
+%define MNIST_SIZE                              28
+%define INPUT_SIZE                              MNIST_SIZE*MNIST_SIZE
 
-%define DENSE1_SIZE                     128
-%define DENSE2_SIZE                     10
+%define DENSE1_SIZE                             128
+%define DENSE2_SIZE                             10
 
-%define DENSE1_BYTE_SIZE                4*DENSE1_SIZE
-%define DENSE2_BYTE_SIZE                4*DENSE2_SIZE
+%define DENSE1_BYTE_SIZE                        4*DENSE1_SIZE
+%define DENSE2_BYTE_SIZE                        4*DENSE2_SIZE
 
-%define DENSE1_WEIGHTS_BYTE_SIZE        INPUT_SIZE*DENSE1_SIZE*4
-%define DENSE2_WEIGHTS_BYTE_SIZE        DENSE1_SIZE*DENSE2_SIZE*4
+%define DENSE1_WEIGHTS_BYTE_SIZE                INPUT_SIZE*DENSE1_SIZE*4
+%define DENSE2_WEIGHTS_BYTE_SIZE                DENSE1_SIZE*DENSE2_SIZE*4
 
 section .data
 window_name dw 'M', 'N', 'I', 'S', 'T', '-', 'x', '8', '6', 0    ; wide character string
@@ -117,18 +117,18 @@ global WindowProcessMessage
 
 main:
     ; Function prologue
-    push    rbp
-    mov     rbp, rsp
-    sub     rsp, 32                             ; Reserve 32 bytes of shadow space
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32                                 ; Reserve 32 bytes of shadow space
 
     xor rcx, rcx
     call GetModuleHandleW
 
-    mov     rcx, rax                            ; hInstance
-    xor     rdx, rdx                            ; hPrevInstance (always NULL)
-    xor     r8, r8                              ; lpCmdLine (NULL)
-    xor     r9, r9                              ; nCmdShow (0)
-    call    WinMain
+    mov rcx, rax                                ; hInstance
+    xor rdx, rdx                                ; hPrevInstance (always NULL)
+    xor r8, r8                                  ; lpCmdLine (NULL)
+    xor r9, r9                                  ; nCmdShow (0)
+    call WinMain
 
     ; Function epilogue
     ; rax contains the return value from WinMain
@@ -197,7 +197,6 @@ initialize_device_context:
     mov rcx, [r10 + 16]                         ; frame_device_context offset is 16
     mov rdx, rax
     call SelectObject
-
 
     ; Function epilogue
     xor rax, rax                                ; Return 0
@@ -272,7 +271,7 @@ WinMain:
 
     mov DWORD [rel draw_buffer.width], WINDOW_Y
     mov DWORD [rel draw_buffer.height], WINDOW_Y
-    
+
     lea rax, [rel draw_buffer_pixels]
     mov QWORD [rel draw_buffer.pixels_ptr], rax
 
@@ -344,7 +343,7 @@ WinMain:
     lea rdx, [rel window_name]
     lea r8,  [rel window_name]
     mov r9, 0x10CA0000                          ; (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & (~(WS_THICKFRAME | WS_MAXIMIZEBOX))
-    
+
     mov QWORD [rsp + 4 * 8], 440
     mov QWORD [rsp + 5 * 8], 120
 
@@ -387,24 +386,25 @@ WinMain:
     ; == main loop ==
     ; ===============
 
-    %define msg                             window_handle - 48             ; MSG structure, 48 bytes, aligned on an 8 byte boundary
-    %define msg.hwnd                        window_handle - 48             ; 8 bytes
-    %define msg.message                     window_handle - 40             ; 4 bytes + 4 padding bytes
-    %define msg.wParam                      window_handle - 32             ; 8 bytes
-    %define msg.lParam                      window_handle - 24             ; 8 bytes
-    %define msg.time                        window_handle - 16             ; 4 bytes
-    %define msg.py.x                        window_handle - 12             ; 4 bytes
-    %define msg.pt.y                        window_handle - 8              ; 4 bytes + 4 padding bytes
+    ; MSG structure, 48 bytes, aligned on an 8 byte boundary
+    %define msg                                 window_handle - 48             
+    %define msg.hwnd                            window_handle - 48             ; 8 bytes
+    %define msg.message                         window_handle - 40             ; 4 bytes + 4 padding bytes
+    %define msg.wParam                          window_handle - 32             ; 8 bytes
+    %define msg.lParam                          window_handle - 24             ; 8 bytes
+    %define msg.time                            window_handle - 16             ; 4 bytes
+    %define msg.py.x                            window_handle - 12             ; 4 bytes
+    %define msg.pt.y                            window_handle - 8              ; 4 bytes + 4 padding bytes
 
     .mainloop:
-    sub rsp, 16                             ; 1 stack parameter + 8 bytes padding, rsp is still 16 byte aligned
+    sub rsp, 16                                 ; 1 stack parameter + 8 bytes padding, rsp remains 16 byte aligned
 
     .while:
     lea rcx, [msg]
-    mov rdx, 0                              ; NULL
+    mov rdx, 0                                  ; NULL
     mov r8, 0
     mov r9, 0
-    mov QWORD [rsp + 4 * 8], 0x0001         ; PM_REMOVE
+    mov QWORD [rsp + 4 * 8], 0x0001             ; PM_REMOVE
     call PeekMessageW
 
     cmp eax, 0
@@ -414,11 +414,11 @@ WinMain:
     call DispatchMessageW
     jmp .while
     .break_while:
-    add rsp, 16                             ; clear the parameter space
+    add rsp, 16                                 ; clear the parameter space
 
     mov rcx, [window_handle]
-    mov rdx, 0                              ; NULL
-    mov r8, 0                               ; FALSE
+    mov rdx, 0                                  ; NULL
+    mov r8, 0                                   ; FALSE
     call InvalidateRect
 
     mov rcx, [window_handle]
@@ -429,23 +429,23 @@ WinMain:
     jmp .mainloop
 
     .return:
-        ; Function epilogue
-    xor rax, rax                            ; Return 0
-    mov rsp, rbp                            ; Deallocate local variables
-    pop rbp                                 ; Restore the caller's base pointer value
+    ; Function epilogue
+    xor rax, rax                                ; Return 0
+    mov rsp, rbp                                ; Deallocate local variables
+    pop rbp                                     ; Restore the caller's base pointer value
     ret
 
 WindowProcessMessage:
     push    rbp
     mov     rbp, rsp
     ; Reserve 32 bytes of shadow space + 8 bytes for local variables + 8 bytes for 16 byte alignement
-    sub     rsp, 48                               
+    sub     rsp, 48
 
     ; use shadow space, 
-    %define window_handle                   rbp + 2*8           ; rcx home
-    %define message                         rbp + 3*8           ; rdx home
-    %define wParam                          rbp + 4*8           ; r8 home
-    %define lParam                          rbp + 5*8           ; r9 home
+    %define window_handle                       rbp + 2*8           ; rcx home
+    %define message                             rbp + 3*8           ; rdx home
+    %define wParam                              rbp + 4*8           ; r8 home
+    %define lParam                              rbp + 5*8           ; r9 home
 
     mov QWORD [window_handle], rcx
     mov QWORD [message], rdx
@@ -453,31 +453,31 @@ WindowProcessMessage:
     mov QWORD [lParam], r9
 
     ; switch
-    cmp QWORD [message], 0x0012             ; WM_QUIT
+    cmp QWORD [message], 0x0012                 ; WM_QUIT
     je .destroy
 
-    cmp QWORD [message], 0x0002             ; WM_DESTROY
+    cmp QWORD [message], 0x0002                 ; WM_DESTROY
     je .destroy
 
-    cmp QWORD [message], 0x0201             ; WM_LBUTTONDOWN
+    cmp QWORD [message], 0x0201                 ; WM_LBUTTONDOWN
     je .lmb_down
 
-    cmp QWORD [message], 0x0200             ; WM_MOUSEMOVE
+    cmp QWORD [message], 0x0200                 ; WM_MOUSEMOVE
     je .mouse_move
 
-    cmp QWORD [message], 0x0202             ; WM_LBUTTONUP
+    cmp QWORD [message], 0x0202                 ; WM_LBUTTONUP
     je .lmb_up
 
-    cmp QWORD [message], 0x0204             ; WM_RBUTTONDOWN
+    cmp QWORD [message], 0x0204                 ; WM_RBUTTONDOWN
     je .rmb_down
 
-    cmp QWORD [message], 0x0100             ; WM_KEYDOWN
+    cmp QWORD [message], 0x0100                 ; WM_KEYDOWN
     je .key_down
 
-    cmp QWORD [message], 0x0215             ; WM_CAPTURECHANGED
+    cmp QWORD [message], 0x0215                 ; WM_CAPTURECHANGED
     je .capture_changed
 
-    cmp QWORD [message], 0x000F             ; WM_PAINT
+    cmp QWORD [message], 0x000F                 ; WM_PAINT
     je .paint
 
     ; parameters are already loaded
@@ -498,10 +498,10 @@ WindowProcessMessage:
     je .break
     mov rcx, [rel draw_buffer.pixels_ptr]
     mov rdx, [lParam]
-    and rdx, 0xffff
+    and rdx, 0xffff                             ; lowWord(lParam)
     mov r8, [lParam]
     shr r8, 16
-    and r8, 0xffff
+    and r8, 0xffff                              ; highWord(lParam)
     call update_on_mouse_click
 
     mov rcx, [rel draw_buffer.pixels_ptr]
@@ -509,8 +509,8 @@ WindowProcessMessage:
     call get_draw_region_features
 
     mov rcx, [window_handle]
-    xor rdx, rdx                            ; NULL
-    xor r8, r8                              ; FALSE
+    xor rdx, rdx                                ; NULL
+    xor r8, r8                                  ; FALSE
     call InvalidateRect
     jmp .break
 
@@ -525,11 +525,16 @@ WindowProcessMessage:
     jmp .break
 
     .key_down:
-    cmp QWORD [wParam], 0x20                ; VK_SPACE
+    cmp QWORD [wParam], 0x20                    ; VK_SPACE
     jne .break
 
     xor rax, rax
-    .loop:
+
+    ; =====================
+    ; restore digits buffer
+    ; =====================
+
+    .loop:                                      
     lea rcx, [rel saved_digits_buffer]
     mov rcx, [rcx + rax]
 

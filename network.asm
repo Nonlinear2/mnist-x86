@@ -29,7 +29,7 @@ load_weights:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
-    
+
     ; dense1_weights in rcx
     ; dense1_bias in rdx
     ; dense2_weights in r8
@@ -108,7 +108,7 @@ run_network:
     ; dense1_weights in rdx
     ; dense1_bias in r8
     ; dense2_weights in r9
-    
+
     ; dense2_bias on the stack
     ; output_buffer on the stack
 
@@ -173,7 +173,7 @@ run_network:
     ; ├─────────────┤            │       
     ; │    ....     │            │       
     ; ├─────────────┤            │stack  
-    ; │  saved rbp  │◄──── rbp   │growth
+    ; │  saved rbp  │◄──── rbp   │growth 
     ; ├─────────────┤            │       
     ; │return adress│            │       
     ; ├─────────────┤            │       

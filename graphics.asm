@@ -52,7 +52,7 @@ draw_square:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
-    
+
     ; buffer pointer in rcx
     ; mouse x position in rdx
     ; mouse y position in r8
@@ -107,7 +107,7 @@ clear_draw_region:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
-    
+
     ; buffer pointer in rcx
 
     mov QWORD rax, DRAW_REGION_SIZE
@@ -117,11 +117,11 @@ clear_draw_region:
     shl rax, 2                                      ; multiply the index by 4, because it is an RBBA array
 
     xor rdx, rdx                                    ; set rdx to 0
-    .first_loop:                                    ; clear all values
+    .loop1:                                         ; clear all values
     mov byte [rcx + rdx], 0                            
     inc rdx
     cmp rdx, rax
-    jl .first_loop
+    jl .loop1
 
 
     shr rax, 2
@@ -129,11 +129,11 @@ clear_draw_region:
     add QWORD rcx, 3                                ; offset to access alpha channel
 
     xor rdx, rdx                                    ; set rdx to 0
-    .second_loop:
-    mov byte [rcx + 4 * rdx], 255                     ; set the alpha value to 255
+    .loop2:
+    mov byte [rcx + 4 * rdx], 255                   ; set the alpha value to 255
     inc rdx
     cmp rdx, rax
-    jl .second_loop
+    jl .loop2
 
     sub QWORD rcx, 3                                ; restore the value of rcx
 
@@ -150,7 +150,7 @@ get_draw_region_features:
     push    rbp
     mov     rbp, rsp
     sub     rsp, 32                                 ; Reserve 32 bytes of shadow space
-    
+
     ; input buffer pointer in rcx
     ; output buffer pointer in rdx
 
