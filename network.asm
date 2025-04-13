@@ -114,7 +114,9 @@ run_network:
 
     push r9
 
-    ; layer 1
+    ; ===============
+    ; ==  layer 1  ==
+    ; ===============
 
     xor rax, rax
     .loop:
@@ -150,14 +152,15 @@ run_network:
     mov r10, [layer1_output]
     xor rax, rax
     .loop2:
+
     ; apply relu
     cmp DWORD [r10 + rax*4], DWORD 0
     jge .else
     mov DWORD [r10 + rax*4], DWORD 0
     jmp .endif
     .else:
-    ; divide by 256
-    sar DWORD [r10 + rax*4], 8
+    sar DWORD [r10 + rax*4], 8                      ; divide by 256
+
     .endif:
     inc rax
     cmp rax, DENSE1_SIZE
@@ -189,11 +192,15 @@ run_network:
     ; │    ....     │            ▼       
     ; └─────────────┘                    
 
-    ; layer 2
+
+    ; ===============
+    ; ==  layer 2  ==
+    ; ===============
+
     mov rcx, [layer1_output]
-    pop rdx                        ; rdx now contains dense2_weights
-    mov r8, [rbp + 48]             ; r8 now contains dense2_bias
-    mov r10, [rbp + 56]            ; r10 now contains output_buffer
+    pop rdx                                         ; rdx now contains dense2_weights
+    mov r8, [rbp + 48]                              ; r8 now contains dense2_bias
+    mov r10, [rbp + 56]                             ; r10 now contains output_buffer
 
     xor rax, rax
     .loop3:
@@ -223,8 +230,7 @@ run_network:
     jl .loop3
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret

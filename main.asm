@@ -442,10 +442,10 @@ WindowProcessMessage:
     sub     rsp, 48                               
 
     ; use shadow space, 
-    %define window_handle                           rbp + 2*8           ; rcx home
-    %define message                                 rbp + 3*8           ; rdx home
-    %define wParam                                  rbp + 4*8           ; r8 home
-    %define lParam                                  rbp + 5*8           ; r9 home
+    %define window_handle                   rbp + 2*8           ; rcx home
+    %define message                         rbp + 3*8           ; rdx home
+    %define wParam                          rbp + 4*8           ; r8 home
+    %define lParam                          rbp + 5*8           ; r9 home
 
     mov QWORD [window_handle], rcx
     mov QWORD [message], rdx
@@ -453,31 +453,31 @@ WindowProcessMessage:
     mov QWORD [lParam], r9
 
     ; switch
-    cmp QWORD [message], 0x0012               ; WM_QUIT
+    cmp QWORD [message], 0x0012             ; WM_QUIT
     je .destroy
 
-    cmp QWORD [message], 0x0002               ; WM_DESTROY
+    cmp QWORD [message], 0x0002             ; WM_DESTROY
     je .destroy
 
-    cmp QWORD [message], 0x0201               ; WM_LBUTTONDOWN
+    cmp QWORD [message], 0x0201             ; WM_LBUTTONDOWN
     je .lmb_down
 
-    cmp QWORD [message], 0x0200               ; WM_MOUSEMOVE
+    cmp QWORD [message], 0x0200             ; WM_MOUSEMOVE
     je .mouse_move
 
-    cmp QWORD [message], 0x0202               ; WM_LBUTTONUP
+    cmp QWORD [message], 0x0202             ; WM_LBUTTONUP
     je .lmb_up
 
-    cmp QWORD [message], 0x0204               ; WM_RBUTTONDOWN
+    cmp QWORD [message], 0x0204             ; WM_RBUTTONDOWN
     je .rmb_down
 
-    cmp QWORD [message], 0x0100               ; WM_KEYDOWN
+    cmp QWORD [message], 0x0100             ; WM_KEYDOWN
     je .key_down
 
-    cmp QWORD [message], 0x0215               ; WM_CAPTURECHANGED
+    cmp QWORD [message], 0x0215             ; WM_CAPTURECHANGED
     je .capture_changed
 
-    cmp QWORD [message], 0x000F               ; WM_PAINT
+    cmp QWORD [message], 0x000F             ; WM_PAINT
     je .paint
 
     ; parameters are already loaded
@@ -544,7 +544,7 @@ WindowProcessMessage:
     ; call run_network
     ; ================
 
-    sub rsp, 2 * 8                             ; 2 stack parameters, rsp is still 16 byte aligned
+    sub rsp, 2 * 8                              ; 2 stack parameters, rsp is still 16 byte aligned
     lea rcx, [rel mnist_array]
     lea rdx, [rel dense1_weights]
     lea r8, [rel dense1_bias]
@@ -554,7 +554,7 @@ WindowProcessMessage:
     lea rax, [rel output_buffer]
     mov QWORD [rsp + 5 * 8], rax
     call run_network
-    add rsp, 16                                ; clear parameter space
+    add rsp, 16                                 ; clear parameter space
 
     mov ecx, [rel output_buffer]
     xor r8, r8
@@ -595,12 +595,12 @@ WindowProcessMessage:
     lea rdx, [rel paint]
     call BeginPaint
 
-    %define device_context                          rbp - 8
+    %define device_context                      rbp - 8
     mov [device_context], rax
 
     ; call BitBlt twice
 
-    sub rsp, 6 * 8                                  ; 5 stack parameters + 8 padding bytes, rsp is still 16 byte aligned
+    sub rsp, 6 * 8                              ; 5 stack parameters + 8 padding bytes, rsp is still 16 byte aligned
     mov rcx, [device_context]
     xor rdx, rdx
     xor r8, r8
@@ -611,7 +611,7 @@ WindowProcessMessage:
     mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
-    mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
+    mov QWORD [rsp + 8 * 8], 0x00CC0020         ; SRCCOPY
     call BitBlt
 
     mov rcx, [device_context]
@@ -625,10 +625,10 @@ WindowProcessMessage:
     mov QWORD [rsp + 5 * 8], rax
     mov QWORD [rsp + 6 * 8], 0
     mov QWORD [rsp + 7 * 8], 0
-    mov QWORD [rsp + 8 * 8], 0x00CC0020             ; SRCCOPY
+    mov QWORD [rsp + 8 * 8], 0x00CC0020         ; SRCCOPY
     call BitBlt
 
-    add rsp, 6 * 8                                  ; clear parameter space
+    add rsp, 6 * 8                              ; clear parameter space
 
     mov rcx, [window_handle]
     lea rdx, [rel paint]
@@ -637,8 +637,8 @@ WindowProcessMessage:
 
     .break:
     ; Function epilogue
-    xor rax, rax                                    ; Return 0
+    xor rax, rax                                ; Return 0
     .return:
-    mov rsp, rbp                                    ; Deallocate local variables
-    pop rbp                                         ; Restore the caller's base pointer value
+    mov rsp, rbp                                ; Deallocate local variables
+    pop rbp                                     ; Restore the caller's base pointer value
     ret
