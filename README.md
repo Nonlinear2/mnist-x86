@@ -2,7 +2,7 @@
 MNIST-x86 is a small x86 nasm assembly project that opens a window and runs a two layer neural network for digit recognition.
 The project uses the Windows API, and doesn't have any other dependencies.
 
-As assembly is not portable, only a Windows operating system is supported. You can find an assembled binary file in the release section.
+Assembly is not portable, so Windows is the only supported operating system. *You can find an assembled binary file in the release section.*
 
 ## Assemble and link the project yourself
 First assemble the three source files:
