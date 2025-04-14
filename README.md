@@ -32,6 +32,8 @@ The neural network has been trained using the [MNIST database](http://yann.lecun
 
 ![Alt text](./readme_assets/mnist_dataset_sample.png?raw=true)
 
+---
+
 Here is a diagram I made for the x64 calling convention to help me get my offsets right. _Note that all windows API functions expect a 16 byte aligned stack pointer._
 
 ```
