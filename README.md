@@ -10,6 +10,7 @@ Assembly is not portable, so Windows is the only supported operating system.
 
 <br clear="left"/>
 <br><br>
+
 The neural network has been trained using the [MNIST database](http://yann.lecun.com/exdb/mnist/). It consists of a 128 neuron layer with relu activation, and an unactivated 10 neuron output layer. No further processing of the dataset images has been made, so you will get better results if you write digits in the center of the screen, and similar to these:
 <br><br>
 
