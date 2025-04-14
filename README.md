@@ -1,6 +1,9 @@
 # Overview
 MNIST-x86 is a small x86 nasm assembly project that opens a window and runs a two layer neural network for digit recognition.
 The project uses the Windows API, and doesn't have any other dependencies.
+
+As assembly is not portable, only a Windows operating system is supported. You can find an assembled binary file in the release section.
+
 ## Assemble and link the project yourself
 First assemble the three source files:
 ```
@@ -17,4 +20,37 @@ link graphics.obj network.obj main.obj /ENTRY:main /OUT:mnist_x86.exe user32.lib
 - for gcc
 ```
 gcc -nostartfiles -Wl,-e,main main.obj graphics.obj network.obj -o mnist_x86.exe -luser32 -lgdi32 -lkernel32
+```
+
+# Technical details
+This project uses the Windows API to open a set size window, and uses GDI to draw pixels to the screen. I don't know about any gdi tutorials in assembly, so I took inspiration on a C tutorial that you can find [here](https://croakingkero.com/tutorials/drawing_pixels_win32_gdi/). As for assembly resources, I mostly used this [document](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html), this series of [videos](https://youtube.com/playlist?list=PLmxT2pVYo5LB5EzTPZGfFN0c2GDiSXgQe&si=ztnpkqfNEtrZ3LC5) as well as the [compiler explorer](https://godbolt.org/).
+For step by step execution, I use x64dbg, which has proven to be very useful.
+
+
+Here is a diagram of the x64 calling convention that helped me get my offsets right. _Note that all windows API functions expect a 16 byte aligned stack pointer._
+
+```
+     ┌─────────────┐                    
+     │top of stack │◄──── rsp   ▲       
+     ├─────────────┤            │       
+     │    ....     │            │       
+     ├─────────────┤            │stack  
+     │  saved rbp  │◄──── rbp   │growth 
+     ├─────────────┤            │       
+     │return adress│            │       
+     ├─────────────┤            │       
+     │   rcx home  │                    
+     ├─────────────┤                    
+     │   rdx home  │                    
+     ├─────────────┤                    
+     │   r8 home   │                    
+     ├─────────────┤            │       
+     │   r9 home   │ rbp+40     │       
+     ├─────────────┤            │ high  
+     │ parameter 1 │ rbp+48     │ adress
+     ├─────────────┤            │       
+     │ parameter 2 │            │       
+     ├─────────────┤            │       
+     │    ....     │            ▼       
+     └─────────────┘                    
 ```

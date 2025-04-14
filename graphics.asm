@@ -90,7 +90,7 @@ clear_draw_region:
     imul rax, DRAW_REGION_SIZE
     ; rax now has the size of the window
 
-    shl rax, 2                                      ; multiply the index by 4, because it is an RBBA array
+    shl rax, 2                                      ; multiply the index by 4, because it is an RGBA array
 
     xor rdx, rdx                                    ; set rdx to 0
     .loop1:                                         ; clear all values
@@ -370,7 +370,6 @@ draw_circle_on_digits:
 
     ; buffer pointer in rcx
     mov rcx, [digits_buffer_ptr]
-
     ; center_x + x in rdx
     mov rdx, [center_x]
     add rdx, [x]
@@ -480,8 +479,7 @@ draw_circle_on_digits:
     .break:
 
     ; Function epilogue
-    xor rax, rax                  ; Return 0
-
-    mov rsp, rbp ; Deallocate local variables
-    pop rbp ; Restore the caller's base pointer value
+    xor rax, rax                                    ; Return 0
+    mov rsp, rbp                                    ; Deallocate local variables
+    pop rbp                                         ; Restore the caller's base pointer value
     ret
