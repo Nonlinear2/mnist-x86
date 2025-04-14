@@ -3,9 +3,7 @@ MNIST-x86 is a small x86 nasm assembly project that opens a window and runs a tw
 The project uses the Windows API, and doesn't have any other dependencies.
 
 Assembly is not portable, so Windows is the only supported operating system. *You can find an assembled binary file in the release section.*
-
 ![Alt text](./readme_assets/mnist-x86_demo.png?raw=true)
-
 ## Assemble and link the project yourself
 First assemble the three source files:
 ```
