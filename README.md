@@ -1,6 +1,6 @@
 # Overview
 
-<img align="left" src="./readme_assets/mnist-x86_demo.png?raw=true" alt="Alt text" width="340" style="margin-right: 20px; margin-bottom: 20px;"/>
+<img align="left" src="./readme_assets/mnist-x86_demo.png?raw=true" alt="Alt text" width="330" style="margin-right: 20px; margin-bottom: 20px;"/>
 
 MNIST-x86 is a small x86 nasm assembly project that opens a window and runs a two layer neural network for digit recognition. The project uses the Windows API, and doesn't have any other dependencies.
 
@@ -8,11 +8,12 @@ Assembly is not portable, so Windows is the only supported operating system.
 
 *You can find an assembled binary file in the release section.*
 
+<br clear="left"/>
+<br><br>
 The neural network has been trained using the [MNIST database](http://yann.lecun.com/exdb/mnist/). It consists of a 128 neuron layer with relu activation, and an unactivated 10 neuron output layer. No further processing of the dataset images has been made, so you will get better results if you write digits in the center of the screen, and similar to these:
+<br><br>
 
 ![Alt text](./readme_assets/mnist_dataset_sample.png?raw=true)
-
-<br clear="left"/>
 
 ## Assemble and link the project yourself
 First assemble the three source files:
