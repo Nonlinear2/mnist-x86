@@ -27,11 +27,11 @@ Then link them using:
 
 - for MSVC
 ```
-link graphics.obj network.obj main.obj /ENTRY:main /OUT:mnist_x86.exe user32.lib gdi32.lib kernel32.lib /LARGEADDRESSAWARE:NO
+link graphics.obj network.obj main.obj /ENTRY:main /OUT:mnist_x86.exe user32.lib gdi32.lib kernel32.lib /LARGEADDRESSAWARE:NO /SUBSYSTEM:WINDOWS
 ```
 - for gcc
 ```
-gcc -nostartfiles -Wl,-e,main main.obj graphics.obj network.obj -o mnist_x86.exe -luser32 -lgdi32 -lkernel32
+gcc -mwindows -nostartfiles -Wl,-e,main main.obj graphics.obj network.obj -o mnist_x86.exe -luser32 -lgdi32 -lkernel32
 ```
 
 # Technical details
