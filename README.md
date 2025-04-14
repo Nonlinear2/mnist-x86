@@ -4,6 +4,8 @@ The project uses the Windows API, and doesn't have any other dependencies.
 
 Assembly is not portable, so Windows is the only supported operating system. *You can find an assembled binary file in the release section.*
 
+![Alt text](./readme_assets/mnist-x86_demo.png?raw=true)
+
 ## Assemble and link the project yourself
 First assemble the three source files:
 ```
@@ -26,6 +28,9 @@ gcc -nostartfiles -Wl,-e,main main.obj graphics.obj network.obj -o mnist_x86.exe
 This project uses the Windows API to open a set size window, and uses GDI to draw pixels to the screen. I don't know about any gdi tutorials in assembly, so I took inspiration on a C tutorial that you can find [here](https://croakingkero.com/tutorials/drawing_pixels_win32_gdi/). As for assembly resources, I mostly used this [document](https://www.cs.virginia.edu/~evans/cs216/guides/x86.html), this series of [videos](https://youtube.com/playlist?list=PLmxT2pVYo5LB5EzTPZGfFN0c2GDiSXgQe&si=ztnpkqfNEtrZ3LC5) as well as the [compiler explorer](https://godbolt.org/).
 For step by step execution, I use x64dbg, which has proven to be very useful.
 
+The neural network has been trained using the [MNIST database](http://yann.lecun.com/exdb/mnist/). It consists of a 128 neuron layer with relu activation, and an unactivated 10 neuron output layer. No further processing of the dataset images has been made, so you will have better results if you write digits in the center of the screen, and similar to these:
+
+![Alt text](./readme_assets/mnist_dataset_sample.png?raw=true)
 
 Here is a diagram I made for the x64 calling convention to help me get my offsets right. _Note that all windows API functions expect a 16 byte aligned stack pointer._
 
