@@ -27,7 +27,7 @@ This project uses the Windows API to open a set size window, and uses GDI to dra
 For step by step execution, I use x64dbg, which has proven to be very useful.
 
 
-Here is a diagram of the x64 calling convention that helped me get my offsets right. _Note that all windows API functions expect a 16 byte aligned stack pointer._
+Here is a diagram I made for the x64 calling convention to help me get my offsets right. _Note that all windows API functions expect a 16 byte aligned stack pointer._
 
 ```
      ┌─────────────┐                    
