@@ -5,3 +5,5 @@ digits_images/digits.png
 *.obj
 *.pdb
 *.ilk
+/mnist_simple/*
+/mnist_neural_network.ipynb
